@@ -2,11 +2,13 @@
 
 ## Frontend
 
-- [ ] Premium Navbar
-- [ ] Hero Section
+- [x] Premium Navbar
+- [x] Hero Section
+- [x] Quick Access
+- [x] Announcements
 - [ ] Search Bar
-- [ ] Quick Access
-- [ ] Announcements
+- [ ] Department Events
+- [ ] Resources Preview
 - [ ] Footer
 
 ## Student Portal
