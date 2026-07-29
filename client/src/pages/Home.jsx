@@ -28,10 +28,9 @@ function Home() {
 
             <div className="mt-8 flex gap-4">
 
-              <button className="bg-yellow-400 text-blue-900 px-6 py-3 rounded-xl font-semibold hover:bg-yellow-300">
+              <button className="bg-yellow-400 text-blue-900 px-6 py-3 rounded-xl font-semibold">
                 Student Portal
               </button>
-
 
               <button className="border border-white px-6 py-3 rounded-xl hover:bg-white hover:text-blue-900">
                 Explore Courses
@@ -42,41 +41,28 @@ function Home() {
           </div>
 
 
-
           <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-10">
 
             <div className="grid grid-cols-2 gap-6">
 
-              <div className="bg-white/10 p-6 rounded-xl">
-                <h2 className="text-3xl font-bold text-yellow-400">
-                  500+
-                </h2>
-                <p>Students</p>
-              </div>
+              {[
+                ["500+", "Students"],
+                ["50+", "Courses"],
+                ["30+", "Lecturers"],
+                ["5", "Levels"]
+              ].map(([number, text]) => (
 
+                <div key={text} className="bg-white/10 p-6 rounded-xl">
 
-              <div className="bg-white/10 p-6 rounded-xl">
-                <h2 className="text-3xl font-bold text-yellow-400">
-                  50+
-                </h2>
-                <p>Courses</p>
-              </div>
+                  <h2 className="text-3xl font-bold text-yellow-400">
+                    {number}
+                  </h2>
 
+                  <p>{text}</p>
 
-              <div className="bg-white/10 p-6 rounded-xl">
-                <h2 className="text-3xl font-bold text-yellow-400">
-                  30+
-                </h2>
-                <p>Lecturers</p>
-              </div>
+                </div>
 
-
-              <div className="bg-white/10 p-6 rounded-xl">
-                <h2 className="text-3xl font-bold text-yellow-400">
-                  5
-                </h2>
-                <p>Levels</p>
-              </div>
+              ))}
 
             </div>
 
@@ -106,7 +92,7 @@ function Home() {
               "Past Questions",
               "Announcements",
               "Department Events"
-            ].map((item) => (
+            ].map((item)=>(
 
               <div
                 key={item}
@@ -134,90 +120,233 @@ function Home() {
 
 
 
-      {/* Announcements Section */}
+      {/* Announcements */}
 
       <section className="py-20 bg-gray-100 px-6">
 
         <div className="max-w-7xl mx-auto">
 
+          <h2 className="text-3xl font-bold text-blue-900 mb-10">
+            Latest Announcements
+          </h2>
 
-          <div className="flex justify-between items-center mb-10">
 
-            <h2 className="text-3xl font-bold text-blue-900">
-              Latest Announcements
+          <div className="grid md:grid-cols-3 gap-6">
+
+            {[
+              "First Semester Lecture Schedule",
+              "Departmental Meeting",
+              "New Learning Resources"
+            ].map((item)=>(
+
+              <div key={item} className="bg-white rounded-2xl shadow p-6">
+
+                <p className="text-yellow-500 font-semibold">
+                  Department
+                </p>
+
+                <h3 className="font-bold text-xl mt-3">
+                  {item}
+                </h3>
+
+                <p className="text-gray-500 mt-3">
+                  Important updates and information from the department.
+                </p>
+
+              </div>
+
+            ))}
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+
+      {/* Events */}
+
+      <section className="py-20 px-6">
+
+        <div className="max-w-7xl mx-auto">
+
+          <h2 className="text-3xl font-bold text-blue-900 mb-10">
+            Upcoming Events
+          </h2>
+
+
+          <div className="grid md:grid-cols-3 gap-6">
+
+            {[
+              ["Department Seminar", "Academic seminar organised by lecturers."],
+              ["Student Association Meeting", "Important student discussions and updates."],
+              ["Career Development Session", "Industry preparation for QS students."]
+            ].map(([title, description])=>(
+
+              <div
+                key={title}
+                className="border rounded-2xl p-6 shadow-sm hover:shadow-lg transition"
+              >
+
+                <h3 className="text-xl font-bold">
+                  {title}
+                </h3>
+
+                <p className="text-gray-500 mt-3">
+                  {description}
+                </p>
+
+              </div>
+
+            ))}
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+
+      {/* Featured Resources */}
+
+      <section className="py-20 bg-blue-900 text-white px-6">
+
+        <div className="max-w-7xl mx-auto">
+
+          <h2 className="text-3xl font-bold mb-10">
+            Featured Resources
+          </h2>
+
+
+          <div className="grid md:grid-cols-3 gap-6">
+
+            {[
+              "Lecture Slides",
+              "Past Examination Questions",
+              "Course Handbooks"
+            ].map((resource)=>(
+
+              <div key={resource} className="bg-white/10 rounded-2xl p-6">
+
+                <h3 className="text-xl font-bold">
+                  {resource}
+                </h3>
+
+                <p className="text-blue-100 mt-3">
+                  Access important academic materials anytime.
+                </p>
+
+              </div>
+
+            ))}
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+
+      {/* Department Overview */}
+
+      <section className="py-20 px-6">
+
+        <div className="max-w-5xl mx-auto text-center">
+
+          <h2 className="text-3xl font-bold text-blue-900">
+            About Quantity Surveying
+          </h2>
+
+          <p className="mt-6 text-gray-600 text-lg leading-relaxed">
+            Quantity Surveying is a professional discipline focused on
+            cost management, construction economics, project planning,
+            and ensuring value throughout the construction process.
+            QS Nexus was created to provide students and staff with a
+            central digital platform for learning, communication,
+            and academic collaboration.
+          </p>
+
+        </div>
+
+      </section>
+
+
+
+
+      {/* Footer */}
+
+      <footer className="bg-gray-900 text-white py-12 px-6">
+
+        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10">
+
+
+          <div>
+
+            <h2 className="text-2xl font-bold text-yellow-400">
+              QS Nexus
             </h2>
 
-
-            <button className="text-blue-900 font-semibold hover:text-yellow-500">
-              View All
-            </button>
+            <p className="mt-4 text-gray-400">
+              Digital academic portal for the Department of Quantity Surveying.
+            </p>
 
           </div>
 
 
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div>
 
+            <h3 className="font-bold mb-4">
+              Quick Links
+            </h3>
 
-            <div className="bg-white rounded-2xl shadow p-6">
+            <ul className="space-y-2 text-gray-400">
 
-              <span className="text-sm text-yellow-500 font-semibold">
-                Academic
-              </span>
+              <li>Home</li>
+              <li>Courses</li>
+              <li>Resources</li>
+              <li>Login</li>
 
-              <h3 className="font-bold text-xl mt-3">
-                First Semester Lecture Schedule
-              </h3>
+            </ul>
 
-              <p className="text-gray-500 mt-3">
-                Updated departmental timetable and lecture information.
-              </p>
-
-            </div>
-
-
-
-            <div className="bg-white rounded-2xl shadow p-6">
-
-              <span className="text-sm text-yellow-500 font-semibold">
-                Department
-              </span>
-
-              <h3 className="font-bold text-xl mt-3">
-                Departmental Meeting
-              </h3>
-
-              <p className="text-gray-500 mt-3">
-                Important information from the department management.
-              </p>
-
-            </div>
+          </div>
 
 
 
-            <div className="bg-white rounded-2xl shadow p-6">
+          <div>
 
-              <span className="text-sm text-yellow-500 font-semibold">
-                Students
-              </span>
+            <h3 className="font-bold mb-4">
+              Contact
+            </h3>
 
-              <h3 className="font-bold text-xl mt-3">
-                New Learning Resources
-              </h3>
+            <p className="text-gray-400">
+              Department of Quantity Surveying
+            </p>
 
-              <p className="text-gray-500 mt-3">
-                New lecture materials are available for students.
-              </p>
-
-            </div>
-
+            <p className="text-gray-400">
+              University of Ibadan
+            </p>
 
           </div>
 
 
         </div>
 
-      </section>
+
+        <div className="text-center text-gray-500 mt-10">
+
+          © {new Date().getFullYear()} QS Nexus. All rights reserved.
+
+        </div>
+
+
+      </footer>
 
 
     </div>
