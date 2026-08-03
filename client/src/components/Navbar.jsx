@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-
+import NotificationBell from "./NotificationBell"
 function Navbar() {
 
   return (
@@ -70,20 +70,28 @@ function Navbar() {
           >
             Resources
           </Link>
-
+<Link to="/timetable">
+  Timetable
+</Link>
 
         </div>
 
 
 
-        {/* Login Button */}
+        {/* Notification + Login */}
 
-        <Link
-          to="/login"
-          className="bg-blue-900 text-white px-5 py-2 rounded-xl hover:bg-blue-800"
-        >
-          Login
-        </Link>
+<div className="flex items-center gap-5">
+
+  <NotificationBell />
+
+  <Link
+    to="/login"
+    className="bg-blue-900 text-white px-5 py-2 rounded-xl hover:bg-blue-800"
+  >
+    Login
+  </Link>
+
+</div>
 
 
       </div>
