@@ -7,79 +7,62 @@ function Register() {
 
   const navigate = useNavigate()
 
+  const [form, setForm] = useState({
 
-  const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     password: "",
-    level: ""
+    department: "Quantity Surveying",
+    level: "100L"
+
   })
 
 
-  const [message, setMessage] = useState("")
+  const [loading, setLoading] = useState(false)
 
 
-  const handleChange = (e) => {
 
-    setFormData({
-      ...formData,
+  function handleChange(e) {
+
+    setForm({
+
+      ...form,
       [e.target.name]: e.target.value
+
     })
 
   }
 
 
 
-  const handleSubmit = async (e) => {
+
+
+  async function handleSubmit(e) {
 
     e.preventDefault()
 
-    setMessage("Creating account...")
+    setLoading(true)
 
 
-    // Create authentication account
 
-    const { data, error } = await supabase.auth.signUp({
+    const {
+      data,
+      error
+    } = await supabase.auth.signUp({
 
-      email: formData.email,
+      email: form.email,
 
-      password: formData.password
+      password: form.password
 
     })
 
 
-    if (error) {
 
-      setMessage(error.message)
+    if(error){
 
-      return
+      alert(error.message)
 
-    }
-
-
-
-    // Create profile
-
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert([
-
-        {
-          id: data.user.id,
-          full_name: formData.full_name,
-          email: formData.email,
-          role: "student",
-          level: formData.level,
-          department: "Quantity Surveying"
-        }
-
-      ])
-
-
-
-    if (profileError) {
-
-      setMessage(profileError.message)
+      setLoading(false)
 
       return
 
@@ -87,89 +70,161 @@ function Register() {
 
 
 
-    setMessage("Account created successfully!")
+    const user = data.user
 
 
-    setTimeout(() => {
 
-      navigate("/login")
+    if(user){
 
-    }, 2000)
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+
+          id: user.id,
+
+          full_name: form.full_name,
+
+          department: form.department,
+
+          level: form.level,
+
+          role: "student"
+
+        })
+
+
+
+      if(profileError){
+
+        alert(profileError.message)
+
+        setLoading(false)
+
+        return
+
+      }
+
+
+
+    }
+
+
+
+    alert(
+      "Registration successful! Please login."
+    )
+
+
+    navigate("/login")
 
 
   }
+
 
 
 
 
   return (
 
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8">
 
 
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
 
 
-        <h1 className="text-3xl font-bold text-blue-900 text-center">
+        <h1 className="text-3xl font-bold text-blue-900 mb-6">
+
           Create Account
+
         </h1>
-
-
-        <p className="text-gray-600 text-center mt-2">
-          Join QS Nexus student portal
-        </p>
 
 
 
         <form
           onSubmit={handleSubmit}
-          className="mt-8 space-y-5"
+          className="space-y-4"
         >
 
 
+
           <input
+
             type="text"
+
             name="full_name"
+
             placeholder="Full Name"
-            value={formData.full_name}
+
+            value={form.full_name}
+
             onChange={handleChange}
-            className="w-full border rounded-lg p-3"
+
+            className="w-full border p-3 rounded-lg"
+
+            required
+
           />
 
 
 
+
+
           <input
+
             type="email"
+
             name="email"
+
             placeholder="Email"
-            value={formData.email}
+
+            value={form.email}
+
             onChange={handleChange}
-            className="w-full border rounded-lg p-3"
+
+            className="w-full border p-3 rounded-lg"
+
+            required
+
           />
+
+
 
 
 
           <input
+
             type="password"
+
             name="password"
+
             placeholder="Password"
-            value={formData.password}
+
+            value={form.password}
+
             onChange={handleChange}
-            className="w-full border rounded-lg p-3"
+
+            className="w-full border p-3 rounded-lg"
+
+            required
+
           />
+
+
 
 
 
           <select
-            name="level"
-            value={formData.level}
-            onChange={handleChange}
-            className="w-full border rounded-lg p-3"
-          >
 
-            <option value="">
-              Select Level
-            </option>
+            name="level"
+
+            value={form.level}
+
+            onChange={handleChange}
+
+            className="w-full border p-3 rounded-lg"
+
+          >
 
             <option value="100L">
               100L
@@ -191,24 +246,35 @@ function Register() {
               500L
             </option>
 
+
           </select>
 
 
 
 
+
           <button
-            className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold"
+
+            type="submit"
+
+            disabled={loading}
+
+            className="w-full bg-blue-900 text-white py-3 rounded-lg"
+
           >
-            Register
+
+            {
+              loading
+              ? "Creating..."
+              : "Register"
+            }
+
           </button>
+
 
 
         </form>
 
-
-        <p className="text-center mt-4 text-gray-600">
-          {message}
-        </p>
 
 
       </div>

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { supabase } from "../lib/supabase"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 
 
 function Login() {
@@ -17,6 +17,7 @@ function Login() {
   const [message, setMessage] = useState("")
 
 
+
   const handleChange = (e) => {
 
     setFormData({
@@ -28,6 +29,7 @@ function Login() {
 
 
 
+
   const handleSubmit = async (e) => {
 
     e.preventDefault()
@@ -35,7 +37,6 @@ function Login() {
     setMessage("Logging in...")
 
 
-    // Login with Supabase Auth
 
     const { data, error } = await supabase.auth.signInWithPassword({
 
@@ -44,6 +45,7 @@ function Login() {
       password: formData.password
 
     })
+
 
 
     if (error) {
@@ -56,7 +58,7 @@ function Login() {
 
 
 
-    // Get user profile
+
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
@@ -76,7 +78,7 @@ function Login() {
 
 
 
-    // Redirect based on role
+
 
     if (profile.role === "student") {
 
@@ -112,6 +114,8 @@ function Login() {
 
 
 
+
+
   return (
 
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
@@ -120,14 +124,22 @@ function Login() {
       <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
 
 
+
         <h1 className="text-3xl font-bold text-blue-900 text-center">
+
           Login
+
         </h1>
 
 
+
         <p className="text-gray-600 text-center mt-2">
+
           Access your QS Nexus account
+
         </p>
+
+
 
 
 
@@ -152,7 +164,10 @@ function Login() {
 
             className="w-full border rounded-lg p-3"
 
+            required
+
           />
+
 
 
 
@@ -171,6 +186,8 @@ function Login() {
 
             className="w-full border rounded-lg p-3"
 
+            required
+
           />
 
 
@@ -178,6 +195,8 @@ function Login() {
 
 
           <button
+
+            type="submit"
 
             className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800"
 
@@ -193,11 +212,36 @@ function Login() {
 
 
 
+
+
+        <p className="text-center mt-5 text-gray-600">
+
+          Don't have an account?{" "}
+
+          <Link
+
+            to="/register"
+
+            className="text-blue-900 font-bold hover:underline"
+
+          >
+
+            Create Account
+
+          </Link>
+
+        </p>
+
+
+
+
+
         <p className="text-center mt-4 text-gray-600">
 
           {message}
 
         </p>
+
 
 
 
