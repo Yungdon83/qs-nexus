@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
-
+import { Link } from "react-router-dom"
 
 function ManageTimetable() {
 
@@ -360,17 +360,35 @@ function ManageTimetable() {
 
 
 
-                <button
+                <div className="flex gap-3 mt-5">
 
-                  onClick={()=>deleteTimetable(item.id)}
+  <Link
 
-                  className="mt-5 bg-red-600 text-white px-4 py-2 rounded-lg"
+    to={`/edit-timetable/${item.id}`}
 
-                >
+    className="bg-blue-900 text-white px-4 py-2 rounded-lg"
 
-                  Delete
+  >
 
-                </button>
+    Edit
+
+  </Link>
+
+
+
+  <button
+
+    onClick={()=>deleteTimetable(item.id)}
+
+    className="bg-red-600 text-white px-4 py-2 rounded-lg"
+
+  >
+
+    Delete
+
+  </button>
+
+</div>
 
 
 

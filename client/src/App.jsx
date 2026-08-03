@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 import ProtectedRoute from "./components/ProtectedRoute"
 import Navbar from "./components/Navbar"
-
+import EditCourse from "./pages/EditCourse"
 import Home from "./pages/Home"
 import About from "./pages/About"
 import Courses from "./pages/Courses"
@@ -12,7 +12,7 @@ import Register from "./pages/Register"
 import LevelCourses from "./pages/LevelCourses"
 import CourseDetails from "./pages/CourseDetails"
 import Timetable from "./pages/Timetable"
-
+import EditTimetable from "./pages/EditTimetable"
 
 import StudentDashboard from "./pages/StudentDashboard"
 import LecturerDashboard from "./pages/LecturerDashboard"
@@ -68,7 +68,14 @@ function App() {
           path="/courses/:level"
           element={<LevelCourses />}
         />
-
+        <Route
+          path="/edit-course/:id"
+          element={
+           <ProtectedRoute allowedRole="admin">
+           <EditCourse />
+           </ProtectedRoute>
+       }
+/>
         <Route
           path="/course/:courseCode"
           element={<CourseDetails />}
@@ -134,7 +141,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+<Route
+  path="/edit-timetable/:id"
+  element={
+    <ProtectedRoute allowedRole="admin">
+      <EditTimetable />
+    </ProtectedRoute>
+  }
+/>
 
 
 

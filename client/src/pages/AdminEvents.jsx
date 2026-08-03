@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 
 
@@ -216,19 +217,35 @@ function AdminEvents() {
 
 
 
-                <button
+                <div className="flex gap-3 mt-5">
 
-                  onClick={()=>deleteEvent(event.id)}
+<Link
 
-                  className="mt-5 bg-red-600 text-white px-4 py-2 rounded-lg"
+to={`/edit-event/${event.id}`}
 
-                >
+className="bg-blue-900 text-white px-4 py-2 rounded-lg"
 
-                  Delete Event
+>
 
-                </button>
+Edit
+
+</Link>
 
 
+
+<button
+
+onClick={()=>deleteEvent(event.id)}
+
+className="bg-red-600 text-white px-4 py-2 rounded-lg"
+
+>
+
+Delete Event
+
+</button>
+
+</div>
 
               </div>
 
