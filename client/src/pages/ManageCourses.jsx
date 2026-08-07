@@ -1,44 +1,65 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 
 
 function ManageCourses() {
 
-  const [courses, setCourses] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState("")
+
+  const [courses,setCourses] = useState([])
+
+  const [lecturers,setLecturers] = useState([])
+
+  const [loading,setLoading] = useState(true)
+
+  const [search,setSearch] = useState("")
 
 
-  const [form, setForm] = useState({
 
-    course_code: "",
-    course_title: "",
-    description: "",
-    level: "",
-    unit: "",
+  const [form,setForm] = useState({
+
+    course_code:"",
+    course_title:"",
+    description:"",
+    level:"",
+    unit:"",
+    lecturer_id:""
 
   })
 
 
 
-  useEffect(() => {
+
+
+
+
+  useEffect(()=>{
 
     getCourses()
+    getLecturers()
 
-  }, [])
-
-
-
+  },[])
 
 
-  async function getCourses() {
 
 
-    const { data, error } = await supabase
+
+
+
+  async function getCourses(){
+
+
+    const {data,error}=await supabase
+
       .from("courses")
-      .select("*")
-      .order("course_code", { ascending: true })
+
+      .select(`
+        *,
+        profiles:lecturer_id(
+          full_name
+        )
+      `)
+
+      .order("course_code",{ascending:true})
 
 
 
@@ -54,8 +75,43 @@ function ManageCourses() {
 
     setLoading(false)
 
+  }
+
+
+
+
+
+
+
+
+  async function getLecturers(){
+
+
+    const {data,error}=await supabase
+
+      .from("profiles")
+
+      .select("*")
+
+      .eq("role","lecturer")
+
+      .order("full_name",{ascending:true})
+
+
+
+    if(error){
+
+      alert(error.message)
+      return
+
+    }
+
+
+    setLecturers(data || [])
+
 
   }
+
 
 
 
@@ -70,7 +126,7 @@ function ManageCourses() {
 
       ...form,
 
-      [e.target.name]: e.target.value
+      [e.target.name]:e.target.value
 
     })
 
@@ -83,15 +139,34 @@ function ManageCourses() {
 
 
 
+
+
   async function addCourse(e){
+
 
     e.preventDefault()
 
 
 
-    const { error } = await supabase
+    const {error}=await supabase
+
       .from("courses")
-      .insert(form)
+
+      .insert({
+
+        course_code:form.course_code,
+
+        course_title:form.course_title,
+
+        description:form.description,
+
+        level:form.level,
+
+        unit:form.unit,
+
+        lecturer_id:form.lecturer_id
+
+      })
 
 
 
@@ -115,6 +190,7 @@ function ManageCourses() {
       description:"",
       level:"",
       unit:"",
+      lecturer_id:""
 
     })
 
@@ -124,6 +200,8 @@ function ManageCourses() {
 
 
   }
+
+
 
 
 
@@ -143,11 +221,13 @@ function ManageCourses() {
 
 
 
+    const {error}=await supabase
 
-    const { error } = await supabase
       .from("courses")
+
       .delete()
-      .eq("id", id)
+
+      .eq("id",id)
 
 
 
@@ -171,22 +251,21 @@ function ManageCourses() {
 
 
 
-  const filteredCourses = courses.filter((course)=>
 
+  const filteredCourses = courses.filter(course=>
 
     course.course_code
-      ?.toLowerCase()
-      .includes(search.toLowerCase())
-
+    ?.toLowerCase()
+    .includes(search.toLowerCase())
 
     ||
 
     course.course_title
-      ?.toLowerCase()
-      .includes(search.toLowerCase())
-
+    ?.toLowerCase()
+    .includes(search.toLowerCase())
 
   )
+
 
 
 
@@ -214,329 +293,345 @@ function ManageCourses() {
 
 
 
+  return(
 
-  return (
 
-    <div className="min-h-screen bg-gray-100 p-8">
+<div className="min-h-screen bg-gray-100 p-8">
 
 
-      <div className="max-w-7xl mx-auto">
+<div className="max-w-7xl mx-auto">
 
 
 
+<h1 className="text-3xl font-bold text-blue-900 mb-6">
 
+Manage Courses
 
-        <h1 className="text-3xl font-bold text-blue-900 mb-6">
+</h1>
 
-          Manage Courses
 
-        </h1>
 
 
 
 
 
+<div className="bg-white rounded-xl shadow p-6 mb-8">
 
 
-        <div className="bg-white rounded-xl shadow p-6 mb-8">
+<h2 className="text-2xl font-bold mb-5">
 
+Add New Course
 
+</h2>
 
-          <h2 className="text-2xl font-bold mb-5">
 
-            Add New Course
 
-          </h2>
 
+<form
+onSubmit={addCourse}
+className="grid md:grid-cols-2 gap-4"
+>
 
 
 
+<input
 
-          <form
+name="course_code"
 
-            onSubmit={addCourse}
+value={form.course_code}
 
-            className="grid md:grid-cols-2 gap-4"
+onChange={handleChange}
 
-          >
+placeholder="Course Code"
 
+className="border p-3 rounded-lg"
 
+required
 
-            <input
+/>
 
-              name="course_code"
 
-              value={form.course_code}
 
-              onChange={handleChange}
 
-              placeholder="Course Code"
 
-              className="border p-3 rounded-lg"
+<input
 
-              required
+name="course_title"
 
-            />
+value={form.course_title}
 
+onChange={handleChange}
 
+placeholder="Course Title"
 
+className="border p-3 rounded-lg"
 
-            <input
+required
 
-              name="course_title"
+/>
 
-              value={form.course_title}
 
-              onChange={handleChange}
 
-              placeholder="Course Title"
 
-              className="border p-3 rounded-lg"
 
-              required
 
-            />
+<input
 
+name="level"
 
+value={form.level}
 
+onChange={handleChange}
 
+placeholder="Level e.g 100L"
 
-            <input
+className="border p-3 rounded-lg"
 
-              name="level"
+/>
 
-              value={form.level}
 
-              onChange={handleChange}
 
-              placeholder="Level e.g 100L"
 
-              className="border p-3 rounded-lg"
 
-            />
+<input
 
+name="unit"
 
+value={form.unit}
 
+onChange={handleChange}
 
+placeholder="Unit"
 
-            <input
+className="border p-3 rounded-lg"
 
-              name="unit"
+/>
 
-              value={form.unit}
 
-              onChange={handleChange}
 
-              placeholder="Unit"
 
-              className="border p-3 rounded-lg"
 
-            />
 
 
+<select
 
+name="lecturer_id"
 
+value={form.lecturer_id}
 
-            <textarea
+onChange={handleChange}
 
-              name="description"
+className="border p-3 rounded-lg md:col-span-2"
 
-              value={form.description}
+required
 
-              onChange={handleChange}
+>
 
-              placeholder="Description"
 
-              className="border p-3 rounded-lg md:col-span-2"
+<option value="">
 
-            />
+Select Lecturer
 
+</option>
 
 
+{
 
+lecturers.map(lecturer=>(
 
+<option
 
-            <button
+key={lecturer.id}
 
-              className="bg-blue-900 text-white p-3 rounded-lg md:col-span-2"
+value={lecturer.id}
 
-            >
+>
 
-              Add Course
+{lecturer.full_name}
 
-            </button>
+</option>
 
+))
 
+}
 
-          </form>
 
 
+</select>
 
-        </div>
 
 
 
 
 
 
+<textarea
 
+name="description"
 
+value={form.description}
 
-        <input
+onChange={handleChange}
 
-          placeholder="Search courses..."
+placeholder="Description"
 
-          value={search}
+className="border p-3 rounded-lg md:col-span-2"
 
-          onChange={(e)=>setSearch(e.target.value)}
+/>
 
-          className="border rounded-lg p-3 w-full md:w-96 mb-6"
 
-        />
 
 
 
 
+<button
 
+className="bg-blue-900 text-white p-3 rounded-lg md:col-span-2"
 
+>
 
+Add Course
 
+</button>
 
-        <div className="grid md:grid-cols-2 gap-6">
 
 
+</form>
 
-          {
 
-            filteredCourses.map((course)=>(
+</div>
 
 
-              <div
 
-                key={course.id}
 
-                className="bg-white rounded-xl shadow p-6"
 
-              >
 
 
 
 
+<input
 
-                <h2 className="text-xl font-bold text-blue-900">
+placeholder="Search courses..."
 
-                  {course.course_code}
+value={search}
 
-                </h2>
+onChange={(e)=>setSearch(e.target.value)}
 
+className="border rounded-lg p-3 w-full md:w-96 mb-6"
 
+/>
 
 
 
-                <p className="font-semibold mt-2">
 
-                  {course.course_title}
 
-                </p>
 
 
 
 
+<div className="grid md:grid-cols-2 gap-6">
 
-                <p className="text-gray-600 mt-2">
 
-                  {course.description}
 
-                </p>
+{
 
+filteredCourses.map(course=>(
 
 
+<div
 
+key={course.id}
 
-                <p className="mt-3">
+className="bg-white rounded-xl shadow p-6"
 
-                  Level: {course.level}
+>
 
-                </p>
 
+<h2 className="text-xl font-bold text-blue-900">
 
+{course.course_code}
 
+</h2>
 
 
-                <p>
 
-                  Unit: {course.unit}
+<p className="font-semibold mt-2">
 
-                </p>
+{course.course_title}
 
+</p>
 
 
 
+<p className="text-gray-600">
 
+{course.description}
 
+</p>
 
-                <div className="flex gap-3 mt-5">
 
 
+<p className="mt-3">
 
-                  <Link
+Level: {course.level}
 
-                    to={`/edit-course/${course.id}`}
+</p>
 
-                    className="bg-blue-900 text-white px-4 py-2 rounded-lg"
 
-                  >
+<p>
 
-                    Edit
+Unit: {course.unit}
 
-                  </Link>
+</p>
 
 
 
+<p className="mt-3 font-semibold text-green-700">
 
+Lecturer: {course.profiles?.full_name || "Not Assigned"}
 
-                  <button
+</p>
 
-                    onClick={()=>deleteCourse(course.id)}
 
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg"
 
-                  >
 
-                    Delete
 
-                  </button>
 
+<button
 
+onClick={()=>deleteCourse(course.id)}
 
-                </div>
+className="bg-red-600 text-white px-4 py-2 rounded-lg mt-5"
 
+>
 
+Delete
 
+</button>
 
 
-              </div>
 
+</div>
 
-            ))
 
-          }
+))
 
+}
 
 
 
+</div>
 
-        </div>
 
 
+</div>
 
 
-      </div>
+</div>
 
-
-    </div>
 
   )
+
 
 }
 

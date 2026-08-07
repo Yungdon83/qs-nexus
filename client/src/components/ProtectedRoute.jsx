@@ -3,93 +3,116 @@ import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 
 
-function ProtectedRoute({ children, allowedRole }) {
 
-  const [loading, setLoading] = useState(true)
-  const [authorized, setAuthorized] = useState(false)
+function ProtectedRoute({children, role}){
 
 
-  useEffect(() => {
+const [loading,setLoading] = useState(true)
 
-    checkUser()
-
-  }, [])
-
-
-
-  async function checkUser() {
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-
-
-    if (!user) {
-
-      setLoading(false)
-      return
-
-    }
-
-
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle()
-
-
-
-    if (
-      profile &&
-      profile.role === allowedRole
-    ) {
-
-      setAuthorized(true)
-
-    }
-
-
-
-    setLoading(false)
-
-  }
+const [allowed,setAllowed] = useState(false)
 
 
 
 
 
-  if (loading) {
+useEffect(()=>{
 
-    return (
+checkUser()
 
-      <div className="min-h-screen flex items-center justify-center text-xl font-bold">
-
-        Checking access...
-
-      </div>
-
-    )
-
-  }
+},[])
 
 
 
 
 
-  if (!authorized) {
-
-    return <Navigate to="/login" />
-
-  }
+async function checkUser(){
 
 
+const {
+data:{user}
+}=await supabase.auth.getUser()
 
 
 
-  return children
+if(!user){
+
+setAllowed(false)
+
+setLoading(false)
+
+return
+
+}
+
+
+
+
+
+const {data:profile}=await supabase
+
+.from("profiles")
+
+.select("role")
+
+.eq("id",user.id)
+
+.single()
+
+
+
+
+
+if(profile?.role === role){
+
+setAllowed(true)
+
+}
+
+
+
+setLoading(false)
+
+
+}
+
+
+
+
+
+
+
+if(loading){
+
+return(
+
+<div className="p-10 font-bold">
+
+Checking access...
+
+</div>
+
+)
+
+}
+
+
+
+
+
+
+
+if(!allowed){
+
+return <Navigate to="/login"/>
+
+}
+
+
+
+
+
+return children
+
 
 }
 

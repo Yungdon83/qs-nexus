@@ -1,114 +1,165 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import LogoutButton from "../components/LogoutButton"
 
 
 function LecturerDashboard() {
 
+  const navigate = useNavigate()
 
-  const [stats,setStats] = useState({
-
-    courses:0,
-    resources:0,
-    announcements:0,
-    events:0
-
-  })
-
-
-  const [timetable,setTimetable] = useState([])
+  const [profile, setProfile] = useState(null)
+  const [courses, setCourses] = useState([])
+  const [resources, setResources] = useState([])
+  const [announcements, setAnnouncements] = useState([])
+  const [events, setEvents] = useState([])
+  const [timetable, setTimetable] = useState([])
+  const [loading, setLoading] = useState(true)
 
 
 
+  useEffect(() => {
 
+    loadDashboard()
 
-  useEffect(()=>{
-
-    getStats()
-    getTimetable()
-
-  },[])
+  }, [])
 
 
 
+  async function loadDashboard() {
+
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
 
 
+    if (!user) {
 
-
-  async function getStats(){
-
-
-    const {count:courses}=await supabase
-      .from("courses")
-      .select("*",{count:"exact",head:true})
-
-
-
-    const {count:resources}=await supabase
-      .from("resources")
-      .select("*",{count:"exact",head:true})
-
-
-
-    const {count:announcements}=await supabase
-      .from("announcements")
-      .select("*",{count:"exact",head:true})
-
-
-
-    const {count:events}=await supabase
-      .from("events")
-      .select("*",{count:"exact",head:true})
-
-
-
-
-    setStats({
-
-      courses:courses||0,
-      resources:resources||0,
-      announcements:announcements||0,
-      events:events||0
-
-    })
-
-  }
-
-
-
-
-
-
-
-
-
-  async function getTimetable(){
-
-
-    const {data,error}=await supabase
-      .from("timetable")
-      .select("*")
-      .order("day",{ascending:true})
-
-
-
-    if(error){
-
-      console.log(error.message)
+      setLoading(false)
       return
 
     }
 
 
 
-    setTimetable(data || [])
+    const { data: profileData } = await supabase
 
+      .from("profiles")
+
+      .select("*")
+
+      .eq("id", user.id)
+
+      .single()
+
+
+
+    setProfile(profileData)
+
+
+
+    const { data: coursesData } = await supabase
+
+      .from("courses")
+
+      .select("*")
+
+      .eq("lecturer_id", user.id)
+
+
+    setCourses(coursesData || [])
+
+
+
+
+    const { data: resourcesData } = await supabase
+
+      .from("resources")
+
+      .select("*")
+
+      .eq("uploaded_by", user.id)
+
+      .order("created_at", {
+        ascending:false
+      })
+
+
+    setResources(resourcesData || [])
+
+
+
+
+    const { data: announcementData } = await supabase
+
+      .from("announcements")
+
+      .select("*")
+
+      .eq("posted_by", user.id)
+
+      .order("created_at", {
+        ascending:false
+      })
+
+
+    setAnnouncements(announcementData || [])
+
+
+
+
+    const { data: eventData } = await supabase
+
+      .from("events")
+
+      .select("*")
+
+      .eq("created_by", user.id)
+
+      .order("event_date", {
+        ascending:true
+      })
+
+
+    setEvents(eventData || [])
+
+
+
+
+    const { data: timetableData } = await supabase
+
+      .from("timetable")
+
+      .select("*")
+
+      .eq("lecturer", profileData?.full_name)
+
+
+    setTimetable(timetableData || [])
+
+
+
+    setLoading(false)
 
   }
 
 
 
+
+
+  if (loading) {
+
+    return (
+
+      <div className="p-10 text-xl font-bold">
+
+        Loading lecturer dashboard...
+
+      </div>
+
+    )
+
+  }
 
 
 
@@ -119,8 +170,7 @@ function LecturerDashboard() {
     <div className="min-h-screen bg-gray-100">
 
 
-
-      <div className="bg-blue-900 text-white px-8 py-6 flex justify-between items-center">
+      <div className="bg-blue-900 text-white px-10 py-6 flex justify-between items-center">
 
 
         <div>
@@ -132,14 +182,14 @@ function LecturerDashboard() {
           </h1>
 
 
-          <p className="text-blue-200 mt-2">
+          <p className="mt-2 text-blue-200">
 
-            Welcome back, Lecturer
+            Welcome {profile?.full_name}
 
           </p>
 
-
         </div>
+
 
 
         <LogoutButton />
@@ -151,25 +201,80 @@ function LecturerDashboard() {
 
 
 
-
-
       <div className="max-w-7xl mx-auto p-8">
 
 
+        <div className="grid md:grid-cols-5 gap-5">
+
+
+          <Card title="My Courses" value={courses.length}/>
+
+          <Card title="Resources" value={resources.length}/>
+
+          <Card title="Announcements" value={announcements.length}/>
+
+          <Card title="Events" value={events.length}/>
+
+          <Card title="Classes" value={timetable.length}/>
+
+
+        </div>
 
 
 
-        <div className="grid md:grid-cols-4 gap-6">
+
+
+        <div className="mt-8 bg-white rounded-xl shadow p-6">
+
+
+          <h2 className="text-2xl font-bold text-blue-900 mb-5">
+
+            Lecturer Actions
+
+          </h2>
 
 
 
-          <Card title="Courses" value={stats.courses}/>
+          <div className="grid md:grid-cols-3 gap-4">
 
-          <Card title="Resources" value={stats.resources}/>
 
-          <Card title="Announcements" value={stats.announcements}/>
+            <ActionButton
+              title="Create Assignment"
+              click={() => navigate("/create-assignment")}
+            />
 
-          <Card title="Events" value={stats.events}/>
+
+            <ActionButton
+              title="Manage Assignments"
+              click={() => navigate("/manage-assignments")}
+            />
+
+
+            <ActionButton
+              title="Grade Submissions"
+              click={() => navigate("/grade-submissions")}
+            />
+
+
+            <ActionButton
+              title="Upload Resource"
+              click={() => navigate("/upload-resource")}
+            />
+
+
+            <ActionButton
+              title="Create Announcement"
+              click={() => navigate("/create-announcement")}
+            />
+
+
+            <ActionButton
+              title="Manage Announcements"
+              click={() => navigate("/manage-announcements")}
+            />
+
+
+          </div>
 
 
         </div>
@@ -179,45 +284,64 @@ function LecturerDashboard() {
 
 
 
-
-
-
-        <div className="bg-white rounded-xl shadow p-6 mt-8">
-
-
-          <h2 className="text-2xl font-bold text-blue-900 mb-5">
-
-            My Teaching Schedule
-
-          </h2>
-
-
+        <Section title="My Courses">
 
 
           {
-            timetable.length===0 ? (
-
-              <p>
-                No timetable available.
-              </p>
-
-            )
-
-            :
-
-            timetable.map(item=>(
-
+            courses.map(course => (
 
               <div
-
-                key={item.id}
-
-                className="border rounded-lg p-5 mb-4 bg-gray-50"
-
+                key={course.id}
+                className="bg-white border rounded-lg p-4 mb-4"
               >
 
+                <h3 className="font-bold text-blue-900">
 
-                <h3 className="font-bold text-blue-900 text-lg">
+                  {course.course_code}
+
+                </h3>
+
+
+                <p>
+
+                  {course.course_title}
+
+                </p>
+
+
+                <p>
+
+                  Level: {course.level}
+
+                </p>
+
+
+              </div>
+
+            ))
+          }
+
+
+        </Section>
+
+
+
+
+
+
+
+        <Section title="My Teaching Schedule">
+
+
+          {
+            timetable.map(item => (
+
+              <div
+                key={item.id}
+                className="bg-white border rounded-lg p-4 mb-4"
+              >
+
+                <h3 className="font-bold">
 
                   {item.course_code}
 
@@ -225,51 +349,27 @@ function LecturerDashboard() {
 
 
                 <p>
-
-                  {item.course_title}
-
-                </p>
-
-
-                <p>
-
-                  🎓 Level: {item.level}
-
-                </p>
-
-
-                <p>
-
                   📅 {item.day}
-
                 </p>
 
 
                 <p>
-
                   ⏰ {item.start_time} - {item.end_time}
-
                 </p>
 
 
                 <p>
-
                   📍 {item.venue}
-
                 </p>
 
 
               </div>
 
-
             ))
-
           }
 
 
-
-        </div>
-
+        </Section>
 
 
 
@@ -277,85 +377,47 @@ function LecturerDashboard() {
 
 
 
-
-        <div className="grid md:grid-cols-3 gap-6 mt-8">
-
+        <Section title="My Resources">
 
 
-          <DashboardLink
-            to="/upload-resource"
-            title="Upload Resource"
-            text="Upload lecture notes and materials."
-            color="bg-blue-900"
-          />
+          {
+            resources.map(resource => (
+
+              <div
+                key={resource.id}
+                className="bg-white border rounded-lg p-4 mb-4"
+              >
+
+                <h3 className="font-bold">
+
+                  {resource.title}
+
+                </h3>
 
 
+                <a
+                  href={resource.file_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-700"
+                >
 
-          <DashboardLink
-            to="/manage-resources"
-            title="Manage Resources"
-            text="Manage uploaded materials."
-            color="bg-green-700"
-          />
+                  Open Resource →
 
-
-
-          <DashboardLink
-            to="/create-announcement"
-            title="Post Announcement"
-            text="Send updates to students."
-            color="bg-white text-blue-900"
-          />
+                </a>
 
 
+              </div>
 
-          <DashboardLink
-            to="/manage-announcements"
-            title="Manage Announcements"
-            text="Edit and delete announcements."
-            color="bg-orange-600"
-          />
+            ))
+          }
 
 
-
-          <DashboardLink
-            to="/create-event"
-            title="Create Event"
-            text="Add seminars and department events."
-            color="bg-purple-700"
-          />
-
-
-
-          <DashboardLink
-            to="/manage-events"
-            title="Manage Events"
-            text="Edit and delete events."
-            color="bg-gray-800"
-          />
-          <Link
-  to="/timetable"
-  className="bg-indigo-700 text-white rounded-xl p-8 shadow hover:bg-indigo-800"
->
-
-  <h2 className="text-2xl font-bold">
-    Teaching Schedule
-  </h2>
-
-  <p className="mt-3">
-    View department timetable and class schedules.
-  </p>
-
-</Link>
-
-
-        </div>
-
+        </Section>
 
 
 
       </div>
-
 
 
     </div>
@@ -369,30 +431,54 @@ function LecturerDashboard() {
 
 
 
+function Card({title,value}) {
 
-function Card({title,value}){
+  return (
 
-return(
+    <div className="bg-white rounded-xl shadow p-5">
 
-<div className="bg-white rounded-xl shadow p-6">
+      <h3 className="font-bold text-gray-600">
 
-<p className="text-gray-500">
+        {title}
 
-{title}
-
-</p>
-
-
-<h2 className="text-4xl font-bold text-blue-900 mt-3">
-
-{value}
-
-</h2>
+      </h3>
 
 
-</div>
+      <p className="text-3xl font-bold text-blue-900">
 
-)
+        {value}
+
+      </p>
+
+
+    </div>
+
+  )
+
+}
+
+
+
+
+
+
+function ActionButton({title,click}) {
+
+  return (
+
+    <button
+
+      onClick={click}
+
+      className="bg-blue-900 text-white p-4 rounded-lg hover:bg-blue-700"
+
+    >
+
+      {title}
+
+    </button>
+
+  )
 
 }
 
@@ -401,44 +487,34 @@ return(
 
 
 
+function Section({title,children}) {
 
-function DashboardLink({to,title,text,color}){
+  return (
 
-
-return(
-
-<Link
-
-to={to}
-
-className={`${color} rounded-xl p-8 shadow`}
-
->
+    <div className="mt-10">
 
 
-<h2 className="text-2xl font-bold">
+      <h2 className="text-2xl font-bold text-blue-900 mb-5">
 
-{title}
+        {title}
 
-</h2>
-
-
-<p className="mt-3">
-
-{text}
-
-</p>
+      </h2>
 
 
-</Link>
 
-)
+      <div>
 
+        {children}
+
+      </div>
+
+
+
+    </div>
+
+  )
 
 }
-
-
-
 
 
 

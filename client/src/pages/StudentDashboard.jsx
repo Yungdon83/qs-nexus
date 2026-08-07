@@ -1,115 +1,103 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import LogoutButton from "../components/LogoutButton"
 
 
 function StudentDashboard() {
 
-  const [profile, setProfile] = useState(null)
-  const [courses, setCourses] = useState([])
-  const [resources, setResources] = useState([])
-  const [announcements, setAnnouncements] = useState([])
-  const [events, setEvents] = useState([])
-  const [timetable, setTimetable] = useState([])
-  const [loading, setLoading] = useState(true)
 
+const navigate = useNavigate()
 
 
-  useEffect(() => {
+const [profile,setProfile] = useState(null)
+const [courses,setCourses] = useState([])
+const [resources,setResources] = useState([])
+const [announcements,setAnnouncements] = useState([])
+const [events,setEvents] = useState([])
+const [timetable,setTimetable] = useState([])
+const [loading,setLoading] = useState(true)
 
-    loadDashboard()
 
-  }, [])
 
 
 
+useEffect(()=>{
 
+loadDashboard()
 
-  const loadDashboard = async () => {
+},[])
 
 
-    const {
-      data:{ user }
-    } = await supabase.auth.getUser()
 
 
 
-    if(!user){
 
-      setLoading(false)
-      return
+const loadDashboard = async()=>{
 
-    }
 
+const {
+data:{user}
+}=await supabase.auth.getUser()
 
 
 
+if(!user){
 
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .maybeSingle()
+setLoading(false)
+return
 
+}
 
 
-    setProfile(profileData)
 
 
 
 
+const {data:profileData}=await supabase
 
-    const { data:coursesData } = await supabase
-      .from("courses")
-      .select("*")
+.from("profiles")
 
+.select("*")
 
-    if(coursesData)
-      setCourses(coursesData)
+.eq("id",user.id)
 
+.maybeSingle()
 
 
 
+setProfile(profileData)
 
 
-    const { data:resourcesData } = await supabase
-      .from("resources")
-      .select("*")
 
 
-    if(resourcesData)
-      setResources(resourcesData)
 
 
 
+const {data:coursesData}=await supabase
 
+.from("courses")
 
+.select("*")
 
 
-    const { data:announcementsData } = await supabase
-      .from("announcements")
-      .select("*")
-      .order("created_at",{ascending:false})
+setCourses(coursesData || [])
 
 
-    if(announcementsData)
-      setAnnouncements(announcementsData)
 
 
 
 
 
 
+const {data:resourcesData}=await supabase
 
+.from("resources")
 
-    const { data:eventsData } = await supabase
-      .from("events")
-      .select("*")
-      .order("event_date",{ascending:true})
+.select("*")
 
 
-    if(eventsData)
-      setEvents(eventsData)
+setResources(resourcesData || [])
 
 
 
@@ -118,407 +106,374 @@ function StudentDashboard() {
 
 
 
-    const { data:timetableData } = await supabase
-      .from("timetable")
-      .select("*")
-      .order("day",{ascending:true})
+const {data:announcementsData}=await supabase
 
+.from("announcements")
 
-    if(timetableData)
-      setTimetable(timetableData)
+.select("*")
 
+.order("created_at",{ascending:false})
 
 
+setAnnouncements(announcementsData || [])
 
 
-    setLoading(false)
 
-  }
 
 
 
 
 
-  const myTimetable = timetable.filter(
+const {data:eventsData}=await supabase
 
-    (item)=> item.level === profile?.level
+.from("events")
 
-  )
+.select("*")
 
+.order("event_date",{ascending:true})
 
 
+setEvents(eventsData || [])
 
 
 
-  if(loading){
 
-    return(
 
-      <div className="min-h-screen flex items-center justify-center text-2xl font-bold">
 
-        Loading Dashboard...
 
-      </div>
 
-    )
+const {data:timetableData}=await supabase
 
-  }
+.from("timetable")
 
+.select("*")
 
+.order("day",{ascending:true})
 
 
+setTimetable(timetableData || [])
 
-  return (
 
-    <div className="min-h-screen bg-gray-100">
 
 
+setLoading(false)
 
-      <div className="bg-blue-900 text-white px-10 py-6 flex justify-between items-center">
 
+}
 
-        <div>
 
-          <h1 className="text-3xl font-bold">
 
-            QS Nexus Student Dashboard
 
-          </h1>
 
 
-          <p className="text-blue-100 mt-2">
+const myTimetable = timetable.filter(
 
-            Welcome, {profile?.full_name}
+(item)=>item.level === profile?.level
 
-          </p>
+)
 
 
-        </div>
 
 
-        <LogoutButton />
 
 
-      </div>
+if(loading){
 
+return(
 
+<div className="min-h-screen flex items-center justify-center text-2xl font-bold">
 
+Loading Dashboard...
 
+</div>
 
-      <div className="max-w-7xl mx-auto p-8">
+)
 
+}
 
 
 
 
-        <div className="grid md:grid-cols-6 gap-6">
 
 
+return(
 
-          <Card title="Department" value={profile?.department}/>
 
-          <Card title="Level" value={profile?.level}/>
+<div className="min-h-screen bg-gray-100">
 
-          <Card title="Courses" value={courses.length}/>
 
-          <Card title="Resources" value={resources.length}/>
 
-          <Card title="Events" value={events.length}/>
 
-          <Card title="Classes" value={myTimetable.length}/>
 
+<div className="bg-blue-900 text-white px-10 py-6 flex justify-between items-center">
 
-        </div>
 
+<div>
 
+<h1 className="text-3xl font-bold">
 
+QS Nexus Student Dashboard
 
+</h1>
 
 
+<p className="text-blue-100 mt-2">
 
+Welcome, {profile?.full_name}
 
+</p>
 
-        <Section title="My Courses">
 
-          {
-            courses.length === 0 ?
+</div>
 
-            <p>No courses available.</p>
 
-            :
+<LogoutButton/>
 
-            courses.map(course=>(
 
-              <div
-                key={course.id}
-                className="border rounded-lg p-4 mb-4"
-              >
+</div>
 
-                <h3 className="font-bold text-blue-900">
 
-                  {course.course_code}
 
-                </h3>
 
 
-                <p>
 
-                  {course.course_title}
 
-                </p>
+<div className="max-w-7xl mx-auto p-8">
 
 
-                <p className="text-sm">
 
-                  Unit: {course.unit}
 
-                </p>
 
 
-              </div>
+<div className="grid md:grid-cols-6 gap-6">
 
-            ))
 
-          }
+<Card title="Department" value={profile?.department}/>
 
-        </Section>
+<Card title="Level" value={profile?.level}/>
 
+<Card title="Courses" value={courses.length}/>
 
+<Card title="Resources" value={resources.length}/>
 
+<Card title="Events" value={events.length}/>
 
+<Card title="Classes" value={myTimetable.length}/>
 
 
+</div>
 
 
 
-        <Section title="My Timetable">
 
 
-          {
-            myTimetable.length === 0 ?
 
-            <p>No timetable available for your level.</p>
 
-            :
+<div className="bg-white rounded-xl shadow p-6 mt-8">
 
-            myTimetable.map(item=>(
 
+<h2 className="text-2xl font-bold text-blue-900 mb-5">
 
-              <div
-                key={item.id}
-                className="border rounded-lg p-5 mb-4 bg-gray-50"
-              >
+Student Actions
 
+</h2>
 
-                <h3 className="font-bold text-blue-900 text-lg">
 
-                  {item.course_code}
 
-                </h3>
+<div className="grid md:grid-cols-4 gap-4">
 
 
-                <p>
+<ActionButton
+title="View Assignments"
+click={()=>navigate("/student-assignments")}
+/>
 
-                  {item.course_title}
 
-                </p>
 
+<ActionButton
+title="My Submissions"
+click={()=>navigate("/student-submissions")}
+/>
 
-                <p>
-                  👨‍🏫 {item.lecturer}
-                </p>
 
 
-                <p>
-                  📅 {item.day}
-                </p>
+<ActionButton
+title="Learning Resources"
+click={()=>navigate("/resources")}
+/>
 
 
-                <p>
-                  ⏰ {item.start_time} - {item.end_time}
-                </p>
 
+<ActionButton
+title="Announcements"
+click={()=>navigate("/student-announcements")}
+/>
 
-                <p>
-                  📍 {item.venue}
-                </p>
 
 
-              </div>
+</div>
 
 
-            ))
+</div>
 
-          }
 
 
-        </Section>
 
 
 
 
+<Section title="My Courses">
 
 
+{
+courses.map(course=>(
 
+<div
+key={course.id}
+className="border rounded-lg p-4 mb-4"
+>
 
 
-        <Section title="Learning Resources">
+<h3 className="font-bold text-blue-900">
 
+{course.course_code}
 
-          {
-            resources.map(resource=>(
+</h3>
 
 
-              <div
-                key={resource.id}
-                className="border rounded-lg p-4 mb-4"
-              >
+<p>
 
+{course.course_title}
 
-                <h3 className="font-bold">
+</p>
 
-                  {resource.title}
 
-                </h3>
+<p>
 
+Unit: {course.unit}
 
-                <p>
+</p>
 
-                  {resource.description}
 
-                </p>
+</div>
 
 
-                <a
-                  href={resource.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-700 font-semibold"
-                >
+))
 
-                  Open Resource →
+}
 
-                </a>
 
+</Section>
 
-              </div>
 
 
-            ))
 
-          }
 
 
-        </Section>
 
+<Section title="My Timetable">
 
 
+{
+myTimetable.map(item=>(
 
 
+<div
 
+key={item.id}
 
+className="border rounded-lg p-5 mb-4"
 
+>
 
-        <Section title="Upcoming Events">
 
+<h3 className="font-bold text-blue-900">
 
-          {
-            events.map(event=>(
+{item.course_code}
 
+</h3>
 
-              <div
-                key={event.id}
-                className="border rounded-lg p-4 mb-4"
-              >
 
-                <h3 className="font-bold text-purple-800">
+<p>{item.course_title}</p>
 
-                  {event.title}
+<p>👨‍🏫 {item.lecturer}</p>
 
-                </h3>
+<p>📅 {item.day}</p>
 
+<p>⏰ {item.start_time} - {item.end_time}</p>
 
-                <p>
+<p>📍 {item.venue}</p>
 
-                  {event.description}
 
-                </p>
+</div>
 
 
-                <p>
-                  📅 {event.event_date}
-                </p>
+))
 
+}
 
-                <p>
-                  📍 {event.location}
-                </p>
 
+</Section>
 
-              </div>
 
 
-            ))
 
-          }
 
 
-        </Section>
 
+<Section title="Learning Resources">
 
 
+{
+resources.map(resource=>(
 
+<div
+key={resource.id}
+className="border rounded-lg p-4 mb-4"
+>
 
 
+<h3 className="font-bold">
 
+{resource.title}
 
+</h3>
 
-        <Section title="Latest Announcements">
 
+<a
+href={resource.file_url}
+target="_blank"
+rel="noreferrer"
+className="text-blue-700"
+>
 
-          {
-            announcements.map(item=>(
+Open Resource →
 
+</a>
 
-              <div
-                key={item.id}
-                className="border-l-4 border-blue-900 bg-gray-50 p-4 mb-4"
-              >
 
-                <h3 className="font-bold">
+</div>
 
-                  {item.title}
+))
 
-                </h3>
+}
 
 
-                <p>
+</Section>
 
-                  {item.content}
 
-                </p>
 
 
-              </div>
 
 
-            ))
 
-          }
+</div>
 
 
-        </Section>
+</div>
 
 
-
-
-
-      </div>
-
-
-    </div>
-
-  )
+)
 
 }
 
@@ -530,27 +485,52 @@ function StudentDashboard() {
 
 function Card({title,value}){
 
-  return(
+return(
 
-    <div className="bg-white rounded-xl shadow p-5">
+<div className="bg-white rounded-xl shadow p-5">
 
-      <p className="text-gray-500">
+<p className="text-gray-500">
 
-        {title}
+{title}
 
-      </p>
-
-
-      <h2 className="text-2xl font-bold text-blue-900">
-
-        {value}
-
-      </h2>
+</p>
 
 
-    </div>
+<h2 className="text-2xl font-bold text-blue-900">
 
-  )
+{value}
+
+</h2>
+
+
+</div>
+
+)
+
+}
+
+
+
+
+
+
+function ActionButton({title,click}){
+
+return(
+
+<button
+
+onClick={click}
+
+className="bg-blue-900 text-white p-4 rounded-lg hover:bg-blue-700"
+
+>
+
+{title}
+
+</button>
+
+)
 
 }
 
@@ -561,28 +541,26 @@ function Card({title,value}){
 
 function Section({title,children}){
 
+return(
 
-  return(
-
-    <div className="bg-white rounded-xl shadow p-6 mt-8">
-
-      <h2 className="text-2xl font-bold mb-5">
-
-        {title}
-
-      </h2>
+<div className="bg-white rounded-xl shadow p-6 mt-8">
 
 
-      {children}
+<h2 className="text-2xl font-bold mb-5">
+
+{title}
+
+</h2>
 
 
-    </div>
+{children}
 
-  )
 
+</div>
+
+)
 
 }
-
 
 
 

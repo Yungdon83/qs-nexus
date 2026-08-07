@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 
 function EditEvent() {
+
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -16,10 +17,11 @@ function EditEvent() {
   })
 
   useEffect(() => {
-    fetchEvent()
+    getEvent()
   }, [])
 
-  async function fetchEvent() {
+  async function getEvent() {
+
     const { data, error } = await supabase
       .from("events")
       .select("*")
@@ -28,7 +30,6 @@ function EditEvent() {
 
     if (error) {
       alert(error.message)
-      setLoading(false)
       return
     }
 
@@ -56,6 +57,7 @@ function EditEvent() {
   }
 
   async function handleSubmit(e) {
+
     e.preventDefault()
 
     const { error } = await supabase
@@ -95,7 +97,10 @@ function EditEvent() {
           Edit Event
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
 
           <input
             type="text"

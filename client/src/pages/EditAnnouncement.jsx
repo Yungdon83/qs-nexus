@@ -8,11 +8,15 @@ function EditAnnouncement() {
   const { id } = useParams()
   const navigate = useNavigate()
 
+
   const [form, setForm] = useState({
+
     title: "",
     content: "",
     audience: "",
+
   })
+
 
   const [loading, setLoading] = useState(true)
 
@@ -26,13 +30,14 @@ function EditAnnouncement() {
 
 
 
-  const fetchAnnouncement = async () => {
+  async function fetchAnnouncement() {
+
 
     const { data, error } = await supabase
       .from("announcements")
       .select("*")
       .eq("id", id)
-      .maybesingle()
+      .maybeSingle()
 
 
 
@@ -43,6 +48,17 @@ function EditAnnouncement() {
       return
 
     }
+
+
+
+    if (!data) {
+
+      alert("Announcement not found")
+
+      return
+
+    }
+
 
 
     setForm({
@@ -56,6 +72,7 @@ function EditAnnouncement() {
     })
 
 
+
     setLoading(false)
 
   }
@@ -64,7 +81,8 @@ function EditAnnouncement() {
 
 
 
-  const handleChange = (e) => {
+  function handleChange(e) {
+
 
     setForm({
 
@@ -74,19 +92,24 @@ function EditAnnouncement() {
 
     })
 
+
   }
 
 
 
 
 
-  const updateAnnouncement = async (e) => {
+  async function updateAnnouncement(e) {
+
 
     e.preventDefault()
 
 
+
     const { error } = await supabase
+
       .from("announcements")
+
       .update({
 
         title: form.title,
@@ -96,7 +119,10 @@ function EditAnnouncement() {
         audience: form.audience,
 
       })
+
       .eq("id", id)
+
+
 
 
 
@@ -107,6 +133,8 @@ function EditAnnouncement() {
       return
 
     }
+
+
 
 
 
@@ -121,11 +149,14 @@ function EditAnnouncement() {
 
 
 
+
+
   if (loading) {
+
 
     return (
 
-      <div className="p-10 text-xl">
+      <div className="p-10 text-xl font-bold">
 
         Loading...
 
@@ -139,12 +170,16 @@ function EditAnnouncement() {
 
 
 
+
+
   return (
+
 
     <div className="min-h-screen bg-gray-100 p-8">
 
 
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow p-8">
+
 
 
         <h1 className="text-3xl font-bold text-blue-900 mb-6">
@@ -156,10 +191,16 @@ function EditAnnouncement() {
 
 
 
+
         <form
+
           onSubmit={updateAnnouncement}
+
           className="space-y-5"
+
         >
+
+
 
 
 
@@ -173,6 +214,8 @@ function EditAnnouncement() {
 
             onChange={handleChange}
 
+            placeholder="Announcement title"
+
             className="w-full border rounded-lg p-3"
 
             required
@@ -183,7 +226,10 @@ function EditAnnouncement() {
 
 
 
+
+
           <textarea
+
 
             name="content"
 
@@ -193,6 +239,8 @@ function EditAnnouncement() {
 
             rows="5"
 
+            placeholder="Announcement content"
+
             className="w-full border rounded-lg p-3"
 
             required
@@ -203,7 +251,11 @@ function EditAnnouncement() {
 
 
 
+
+
+
           <select
+
 
             name="audience"
 
@@ -213,15 +265,34 @@ function EditAnnouncement() {
 
             className="w-full border rounded-lg p-3"
 
+
           >
 
+
+
             <option value="students">
+
               Students
+
             </option>
 
-            <option value="all">
-              Everyone
+
+
+            <option value="lecturers">
+
+              Lecturers
+
             </option>
+
+
+
+            <option value="all">
+
+              Everyone
+
+            </option>
+
+
 
           </select>
 
@@ -229,11 +300,16 @@ function EditAnnouncement() {
 
 
 
+
+
+
           <button
+
 
             type="submit"
 
-            className="w-full bg-blue-900 text-white py-3 rounded-lg"
+            className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold"
+
 
           >
 
@@ -244,7 +320,11 @@ function EditAnnouncement() {
 
 
 
+
         </form>
+
+
+
 
 
       </div>
@@ -252,7 +332,9 @@ function EditAnnouncement() {
 
     </div>
 
+
   )
+
 
 }
 

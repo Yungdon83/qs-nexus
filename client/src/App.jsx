@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-
 import ProtectedRoute from "./components/ProtectedRoute"
 import Navbar from "./components/Navbar"
-import EditCourse from "./pages/EditCourse"
+import StudentSubmissions from "./pages/StudentSubmissions"
+import StudentAnnouncements from "./pages/StudentAnnouncements"
+// Public Pages
 import Home from "./pages/Home"
 import About from "./pages/About"
 import Courses from "./pages/Courses"
@@ -11,52 +12,57 @@ import Login from "./pages/Login"
 import Register from "./pages/Register"
 import LevelCourses from "./pages/LevelCourses"
 import CourseDetails from "./pages/CourseDetails"
-import Timetable from "./pages/Timetable"
-import EditTimetable from "./pages/EditTimetable"
 
+
+// Dashboards
 import StudentDashboard from "./pages/StudentDashboard"
 import LecturerDashboard from "./pages/LecturerDashboard"
 import AdminDashboard from "./pages/AdminDashboard"
 
 
-import ManageStudents from "./pages/ManageStudents"
-import ManageLecturers from "./pages/ManageLecturers"
-import ManageCourses from "./pages/ManageCourses"
-import ManageTimetable from "./pages/ManageTimetable"
-
-
+// Resources
 import UploadResource from "./pages/UploadResource"
 import ManageResources from "./pages/ManageResources"
-import AdminResources from "./pages/AdminResources"
 
 
+// Announcements
 import CreateAnnouncement from "./pages/CreateAnnouncement"
 import ManageAnnouncements from "./pages/ManageAnnouncements"
-import AdminAnnouncements from "./pages/AdminAnnouncements"
 import EditAnnouncement from "./pages/EditAnnouncement"
 
 
+// Events
 import CreateEvent from "./pages/CreateEvent"
 import ManageEvents from "./pages/ManageEvents"
-import AdminEvents from "./pages/AdminEvents"
 import EditEvent from "./pages/EditEvent"
+
+
+// Assignments
+import CreateAssignment from "./pages/CreateAssignment"
+import ManageAssignments from "./pages/ManageAssignments"
+import StudentAssignments from "./pages/StudentAssignments"
+import SubmitAssignment from "./pages/SubmitAssignment"
+import GradeSubmissions from "./pages/GradeSubmissions"
 
 
 
 function App() {
 
+
   return (
 
     <BrowserRouter>
 
+
       <Navbar />
+
 
 
       <Routes>
 
 
-        {/* PUBLIC PAGES */}
 
+        {/* PUBLIC */}
 
         <Route path="/" element={<Home />} />
 
@@ -68,40 +74,28 @@ function App() {
           path="/courses/:level"
           element={<LevelCourses />}
         />
-        <Route
-          path="/edit-course/:id"
-          element={
-           <ProtectedRoute allowedRole="admin">
-           <EditCourse />
-           </ProtectedRoute>
-       }
-/>
+
         <Route
           path="/course/:courseCode"
           element={<CourseDetails />}
         />
-
+<Route
+path="/student-submissions"
+element={<StudentSubmissions />}
+/>
         <Route
           path="/resources"
           element={<Resources />}
         />
 
         <Route
-          path="/timetable"
-          element={<Timetable />}
-        />
-
-
-
-        {/* AUTH */}
-
-
-        <Route
           path="/login"
           element={<Login />}
         />
-
-
+<Route
+path="/student-announcements"
+element={<StudentAnnouncements />}
+/>
         <Route
           path="/register"
           element={<Register />}
@@ -110,47 +104,50 @@ function App() {
 
 
 
-        {/* STUDENT */}
+
+        {/* DASHBOARDS */}
 
 
         <Route
-          path="/student-dashboard"
-          element={
-            <ProtectedRoute allowedRole="student">
+path="/student-dashboard"
+element={
+<ProtectedRoute role="student">
 
-              <StudentDashboard />
+<StudentDashboard />
 
-            </ProtectedRoute>
-          }
-        />
-
-
-
-
-
-        {/* LECTURER */}
-
-
-        <Route
-          path="/lecturer-dashboard"
-          element={
-            <ProtectedRoute allowedRole="lecturer">
-
-              <LecturerDashboard />
-
-            </ProtectedRoute>
-          }
-        />
-<Route
-  path="/edit-timetable/:id"
-  element={
-    <ProtectedRoute allowedRole="admin">
-      <EditTimetable />
-    </ProtectedRoute>
-  }
+</ProtectedRoute>
+}
 />
 
 
+        <Route
+path="/lecturer-dashboard"
+element={
+<ProtectedRoute role="lecturer">
+
+<LecturerDashboard />
+
+</ProtectedRoute>
+}
+/>
+
+
+        <Route
+path="/admin-dashboard"
+element={
+<ProtectedRoute role="admin">
+
+<AdminDashboard />
+
+</ProtectedRoute>
+}
+/>
+
+
+
+
+
+        {/* RESOURCES */}
 
 
         <Route
@@ -163,6 +160,13 @@ function App() {
           path="/manage-resources"
           element={<ManageResources />}
         />
+
+
+
+
+
+
+        {/* ANNOUNCEMENTS */}
 
 
         <Route
@@ -182,6 +186,13 @@ function App() {
           element={<EditAnnouncement />}
         />
 
+
+
+
+
+
+
+        {/* EVENTS */}
 
 
         <Route
@@ -207,115 +218,44 @@ function App() {
 
 
 
-        {/* ADMIN / HOD */}
 
-
-
-        <Route
-          path="/admin-dashboard"
-          element={
-            <ProtectedRoute allowedRole="admin">
-
-              <AdminDashboard />
-
-            </ProtectedRoute>
-          }
-        />
-
+        {/* ASSIGNMENTS */}
 
 
         <Route
-          path="/manage-students"
-          element={
-            <ProtectedRoute allowedRole="admin">
-
-              <ManageStudents />
-
-            </ProtectedRoute>
-          }
+          path="/create-assignment"
+          element={<CreateAssignment />}
         />
-
 
 
         <Route
-          path="/manage-lecturers"
-          element={
-            <ProtectedRoute allowedRole="admin">
-
-              <ManageLecturers />
-
-            </ProtectedRoute>
-          }
+          path="/manage-assignments"
+          element={<ManageAssignments />}
         />
-
 
 
         <Route
-          path="/manage-courses"
-          element={
-            <ProtectedRoute allowedRole="admin">
-
-              <ManageCourses />
-
-            </ProtectedRoute>
-          }
+          path="/student-assignments"
+          element={<StudentAssignments />}
         />
-
 
 
         <Route
-          path="/manage-timetable"
-          element={
-            <ProtectedRoute allowedRole="admin">
-
-              <ManageTimetable />
-
-            </ProtectedRoute>
-          }
+          path="/submit-assignment/:id"
+          element={<SubmitAssignment />}
         />
-
 
 
         <Route
-          path="/admin-resources"
-          element={
-            <ProtectedRoute allowedRole="admin">
-
-              <AdminResources />
-
-            </ProtectedRoute>
-          }
+          path="/grade-submissions"
+          element={<GradeSubmissions />}
         />
 
-
-
-        <Route
-          path="/admin-announcements"
-          element={
-            <ProtectedRoute allowedRole="admin">
-
-              <AdminAnnouncements />
-
-            </ProtectedRoute>
-          }
-        />
-
-
-
-        <Route
-          path="/admin-events"
-          element={
-            <ProtectedRoute allowedRole="admin">
-
-              <AdminEvents />
-
-            </ProtectedRoute>
-          }
-        />
 
 
 
       </Routes>
+
 
 
     </BrowserRouter>
