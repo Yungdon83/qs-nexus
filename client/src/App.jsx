@@ -12,6 +12,8 @@ import Login from "./pages/Login"
 import Register from "./pages/Register"
 import LevelCourses from "./pages/LevelCourses"
 import CourseDetails from "./pages/CourseDetails"
+import ManageLecturers from "./pages/ManageLecturers"
+
 import ManageStudents from "./pages/ManageStudents"
 
 // Dashboards
@@ -109,6 +111,16 @@ element={
 </ProtectedRoute>
 }
 />
+<Route
+  path="/manage-lecturers"
+  element={
+    <ProtectedRoute role="admin">
+      <ManageLecturers />
+    </ProtectedRoute>
+  }
+/>
+
+
 
 
 
