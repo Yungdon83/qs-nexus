@@ -4,63 +4,33 @@ import { supabase } from "../lib/supabase"
 
 function ManageCourses() {
 
-
-  const [courses,setCourses] = useState([])
-
-  const [lecturers,setLecturers] = useState([])
-
-  const [loading,setLoading] = useState(true)
-
-  const [search,setSearch] = useState("")
+  const [courses, setCourses] = useState([])
+  const [lecturers, setLecturers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedLecturers, setSelectedLecturers] = useState({})
 
 
+  useEffect(() => {
 
-  const [form,setForm] = useState({
+    fetchCourses()
+    fetchLecturers()
 
-    course_code:"",
-    course_title:"",
-    description:"",
-    level:"",
-    unit:"",
-    lecturer_id:""
-
-  })
+  }, [])
 
 
 
+  async function fetchCourses(){
 
-
-
-
-  useEffect(()=>{
-
-    getCourses()
-    getLecturers()
-
-  },[])
-
-
-
-
-
-
-
-  async function getCourses(){
-
-
-    const {data,error}=await supabase
-
+    const { data, error } = await supabase
       .from("courses")
-
       .select(`
         *,
-        profiles:lecturer_id(
+        lecturer:profiles(
+          id,
           full_name
         )
       `)
-
-      .order("course_code",{ascending:true})
-
+      .order("course_code")
 
 
     if(error){
@@ -72,7 +42,6 @@ function ManageCourses() {
 
 
     setCourses(data || [])
-
     setLoading(false)
 
   }
@@ -81,22 +50,13 @@ function ManageCourses() {
 
 
 
+  async function fetchLecturers(){
 
-
-
-  async function getLecturers(){
-
-
-    const {data,error}=await supabase
-
+    const { data, error } = await supabase
       .from("profiles")
-
-      .select("*")
-
+      .select("id, full_name")
       .eq("role","lecturer")
-
-      .order("full_name",{ascending:true})
-
+      .order("full_name")
 
 
     if(error){
@@ -109,7 +69,6 @@ function ManageCourses() {
 
     setLecturers(data || [])
 
-
   }
 
 
@@ -117,20 +76,16 @@ function ManageCourses() {
 
 
 
+  function handleLecturerChange(courseId, lecturerId){
 
+    setSelectedLecturers({
 
-  function handleChange(e){
+      ...selectedLecturers,
 
-
-    setForm({
-
-      ...form,
-
-      [e.target.name]:e.target.value
+      [courseId]: lecturerId
 
     })
 
-
   }
 
 
@@ -139,34 +94,30 @@ function ManageCourses() {
 
 
 
+  async function assignLecturer(courseId){
 
 
-  async function addCourse(e){
+    const lecturerId =
+      selectedLecturers[courseId]
 
 
-    e.preventDefault()
+    if(!lecturerId){
+
+      alert("Please select a lecturer")
+      return
+
+    }
 
 
 
-    const {error}=await supabase
-
+    const { error } = await supabase
       .from("courses")
+      .update({
 
-      .insert({
-
-        course_code:form.course_code,
-
-        course_title:form.course_title,
-
-        description:form.description,
-
-        level:form.level,
-
-        unit:form.unit,
-
-        lecturer_id:form.lecturer_id
+        lecturer_id: lecturerId
 
       })
+      .eq("id",courseId)
 
 
 
@@ -178,94 +129,12 @@ function ManageCourses() {
     }
 
 
-
-    alert("Course added successfully")
-
+    alert("Lecturer assigned successfully")
 
 
-    setForm({
-
-      course_code:"",
-      course_title:"",
-      description:"",
-      level:"",
-      unit:"",
-      lecturer_id:""
-
-    })
-
-
-
-    getCourses()
-
+    fetchCourses()
 
   }
-
-
-
-
-
-
-
-
-
-  async function deleteCourse(id){
-
-
-    const confirmDelete = window.confirm(
-      "Delete this course?"
-    )
-
-
-    if(!confirmDelete) return
-
-
-
-    const {error}=await supabase
-
-      .from("courses")
-
-      .delete()
-
-      .eq("id",id)
-
-
-
-    if(error){
-
-      alert(error.message)
-      return
-
-    }
-
-
-
-    getCourses()
-
-
-  }
-
-
-
-
-
-
-
-
-  const filteredCourses = courses.filter(course=>
-
-    course.course_code
-    ?.toLowerCase()
-    .includes(search.toLowerCase())
-
-    ||
-
-    course.course_title
-    ?.toLowerCase()
-    .includes(search.toLowerCase())
-
-  )
-
 
 
 
@@ -275,9 +144,9 @@ function ManageCourses() {
 
   if(loading){
 
-    return(
+    return (
 
-      <div className="p-10 font-bold text-xl">
+      <div className="p-10 text-xl font-bold">
 
         Loading courses...
 
@@ -292,346 +161,220 @@ function ManageCourses() {
 
 
 
+  return (
 
-  return(
+    <div className="min-h-screen bg-gray-100 p-8">
 
 
-<div className="min-h-screen bg-gray-100 p-8">
+      <div className="max-w-7xl mx-auto">
 
 
-<div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-blue-900 mb-8">
 
+          Manage Courses
 
+        </h1>
 
-<h1 className="text-3xl font-bold text-blue-900 mb-6">
 
-Manage Courses
 
-</h1>
 
 
+        <div className="bg-white rounded-xl shadow overflow-hidden">
 
 
+          <table className="w-full">
 
 
+            <thead className="bg-blue-900 text-white">
 
-<div className="bg-white rounded-xl shadow p-6 mb-8">
+              <tr>
 
+                <th className="p-4 text-left">
+                  Code
+                </th>
 
-<h2 className="text-2xl font-bold mb-5">
 
-Add New Course
+                <th className="p-4 text-left">
+                  Course
+                </th>
 
-</h2>
 
+                <th className="p-4 text-left">
+                  Level
+                </th>
 
 
+                <th className="p-4 text-left">
+                  Lecturer
+                </th>
 
-<form
-onSubmit={addCourse}
-className="grid md:grid-cols-2 gap-4"
->
 
+                <th className="p-4 text-left">
+                  Assign
+                </th>
 
 
-<input
+              </tr>
 
-name="course_code"
 
-value={form.course_code}
+            </thead>
 
-onChange={handleChange}
 
-placeholder="Course Code"
 
-className="border p-3 rounded-lg"
 
-required
 
-/>
 
+            <tbody>
 
 
+            {
 
+              courses.map(course=>(
 
-<input
 
-name="course_title"
+                <tr
+                  key={course.id}
+                  className="border-b"
+                >
 
-value={form.course_title}
 
-onChange={handleChange}
+                  <td className="p-4 font-bold">
 
-placeholder="Course Title"
+                    {course.course_code}
 
-className="border p-3 rounded-lg"
+                  </td>
 
-required
 
-/>
 
 
+                  <td className="p-4">
 
+                    {course.course_title}
 
+                  </td>
 
 
-<input
 
-name="level"
 
-value={form.level}
 
-onChange={handleChange}
+                  <td className="p-4">
 
-placeholder="Level e.g 100L"
+                    {course.level}
 
-className="border p-3 rounded-lg"
+                  </td>
 
-/>
 
 
 
 
+                  <td className="p-4">
 
-<input
+                    {
+                      course.lecturer?.full_name
+                      ||
+                      "Not assigned"
+                    }
 
-name="unit"
+                  </td>
 
-value={form.unit}
 
-onChange={handleChange}
 
-placeholder="Unit"
 
-className="border p-3 rounded-lg"
 
-/>
+                  <td className="p-4">
 
 
+                    <select
 
+                      className="border rounded p-2"
 
+                      value={
+                        selectedLecturers[course.id]
+                        ||
+                        course.lecturer_id
+                        ||
+                        ""
+                      }
 
+                      onChange={(e)=>
+                        handleLecturerChange(
+                          course.id,
+                          e.target.value
+                        )
+                      }
 
+                    >
 
-<select
 
-name="lecturer_id"
+                      <option value="">
 
-value={form.lecturer_id}
+                        Select lecturer
 
-onChange={handleChange}
+                      </option>
 
-className="border p-3 rounded-lg md:col-span-2"
 
-required
+                      {
+                        lecturers.map(lecturer=>(
 
->
+                          <option
+                            key={lecturer.id}
+                            value={lecturer.id}
+                          >
 
+                            {lecturer.full_name}
 
-<option value="">
+                          </option>
 
-Select Lecturer
+                        ))
+                      }
 
-</option>
 
+                    </select>
 
-{
 
-lecturers.map(lecturer=>(
 
-<option
+                    <button
 
-key={lecturer.id}
+                      onClick={()=>
+                        assignLecturer(course.id)
+                      }
 
-value={lecturer.id}
+                      className="ml-2 bg-blue-900 text-white px-3 py-2 rounded"
 
->
+                    >
 
-{lecturer.full_name}
+                      Save
 
-</option>
+                    </button>
 
-))
 
-}
+                  </td>
 
 
 
-</select>
+                </tr>
 
 
+              ))
 
+            }
 
 
+            </tbody>
 
 
-<textarea
+          </table>
 
-name="description"
 
-value={form.description}
+        </div>
 
-onChange={handleChange}
 
-placeholder="Description"
+      </div>
 
-className="border p-3 rounded-lg md:col-span-2"
 
-/>
-
-
-
-
-
-
-<button
-
-className="bg-blue-900 text-white p-3 rounded-lg md:col-span-2"
-
->
-
-Add Course
-
-</button>
-
-
-
-</form>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<input
-
-placeholder="Search courses..."
-
-value={search}
-
-onChange={(e)=>setSearch(e.target.value)}
-
-className="border rounded-lg p-3 w-full md:w-96 mb-6"
-
-/>
-
-
-
-
-
-
-
-
-
-<div className="grid md:grid-cols-2 gap-6">
-
-
-
-{
-
-filteredCourses.map(course=>(
-
-
-<div
-
-key={course.id}
-
-className="bg-white rounded-xl shadow p-6"
-
->
-
-
-<h2 className="text-xl font-bold text-blue-900">
-
-{course.course_code}
-
-</h2>
-
-
-
-<p className="font-semibold mt-2">
-
-{course.course_title}
-
-</p>
-
-
-
-<p className="text-gray-600">
-
-{course.description}
-
-</p>
-
-
-
-<p className="mt-3">
-
-Level: {course.level}
-
-</p>
-
-
-<p>
-
-Unit: {course.unit}
-
-</p>
-
-
-
-<p className="mt-3 font-semibold text-green-700">
-
-Lecturer: {course.profiles?.full_name || "Not Assigned"}
-
-</p>
-
-
-
-
-
-
-<button
-
-onClick={()=>deleteCourse(course.id)}
-
-className="bg-red-600 text-white px-4 py-2 rounded-lg mt-5"
-
->
-
-Delete
-
-</button>
-
-
-
-</div>
-
-
-))
-
-}
-
-
-
-</div>
-
-
-
-</div>
-
-
-</div>
-
+    </div>
 
   )
-
 
 }
 
