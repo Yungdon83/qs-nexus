@@ -12,7 +12,7 @@ import Login from "./pages/Login"
 import Register from "./pages/Register"
 import LevelCourses from "./pages/LevelCourses"
 import CourseDetails from "./pages/CourseDetails"
-
+import ManageStudents from "./pages/ManageStudents"
 
 // Dashboards
 import StudentDashboard from "./pages/StudentDashboard"
@@ -101,7 +101,14 @@ element={<StudentAnnouncements />}
           element={<Register />}
         />
 
-
+<Route
+path="/manage-students"
+element={
+<ProtectedRoute role="admin">
+<ManageStudents/>
+</ProtectedRoute>
+}
+/>
 
 
 
