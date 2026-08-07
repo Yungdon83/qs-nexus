@@ -13,6 +13,8 @@ import Register from "./pages/Register"
 import LevelCourses from "./pages/LevelCourses"
 import CourseDetails from "./pages/CourseDetails"
 import ManageLecturers from "./pages/ManageLecturers"
+import CreateLecturer from "./pages/CreateLecturer"
+
 
 import ManageStudents from "./pages/ManageStudents"
 
@@ -119,7 +121,14 @@ element={
     </ProtectedRoute>
   }
 />
-
+<Route
+  path="/create-lecturer"
+  element={
+    <ProtectedRoute role="admin">
+      <CreateLecturer />
+    </ProtectedRoute>
+  }
+/>
 
 
 

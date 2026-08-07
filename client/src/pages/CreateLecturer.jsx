@@ -2,260 +2,287 @@ import { useState } from "react"
 import { supabase } from "../lib/supabase"
 
 
-function CreateLecturer(){
+function CreateLecturer() {
 
-  const [form,setForm] = useState({
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [department, setDepartment] = useState("Quantity Surveying")
 
-    full_name:"",
-    email:"",
-    password:"",
-    department:""
-
-  })
-
-
-  const [message,setMessage] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
 
 
-
-
-  function handleChange(e){
-
-    setForm({
-
-      ...form,
-
-      [e.target.name]:e.target.value
-
-    })
-
-  }
-
-
-
-
-
-  async function createLecturer(e){
+  async function handleSubmit(e) {
 
     e.preventDefault()
 
+    setLoading(true)
+    setMessage("")
+    setError("")
 
-    setMessage("Creating lecturer account...")
+
+    if (!fullName || !email || !password) {
+
+      setError("Please fill in all required fields.")
+
+      setLoading(false)
+
+      return
+    }
 
 
+    if (password.length < 6) {
 
-    const { data, error } = await supabase.functions.invoke(
+      setError("Password must be at least 6 characters.")
 
-      "create-lecturer",
+      setLoading(false)
 
-      {
+      return
+    }
 
-        body: form
 
+    try {
+
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+
+
+      if (!session) {
+
+        setError("You must be logged in as an administrator.")
+
+        setLoading(false)
+
+        return
       }
 
-    )
+
+      const { data, error: functionError } =
+        await supabase.functions.invoke(
+          "create-lecturer",
+          {
+            body: {
+              full_name: fullName,
+              email: email,
+              password: password,
+              department: department,
+            },
+          }
+        )
 
 
+      if (functionError) {
+
+        setError(functionError.message)
+
+        setLoading(false)
+
+        return
+      }
 
 
-    if(error){
+      if (data?.error) {
 
-      setMessage(error.message)
+        setError(data.error)
 
-      return
+        setLoading(false)
+
+        return
+      }
+
+
+      setMessage(
+        "Lecturer account created successfully."
+      )
+
+
+      setFullName("")
+      setEmail("")
+      setPassword("")
+      setDepartment("Quantity Surveying")
+
+
+    } catch (err) {
+
+      setError(
+        err.message ||
+        "Something went wrong."
+      )
 
     }
 
 
-
-
-    if(data?.error){
-
-      setMessage(data.error)
-
-      return
-
-    }
-
-
-
-
-    setMessage(
-      "Lecturer account created successfully"
-    )
-
-
-
-    setForm({
-
-      full_name:"",
-      email:"",
-      password:"",
-      department:""
-
-    })
-
-
+    setLoading(false)
   }
 
 
-
-
-
-
-
-  return(
+  return (
 
     <div className="min-h-screen bg-gray-100 p-8">
 
+      <div className="max-w-2xl mx-auto">
 
-      <div className="max-w-xl mx-auto bg-white rounded-xl shadow p-8">
+        <div className="bg-white rounded-xl shadow p-8">
 
+          <h1 className="text-3xl font-bold text-blue-900 mb-2">
 
+            Create Lecturer Account
 
-        <h1 className="text-3xl font-bold text-blue-900 mb-6">
+          </h1>
 
-          Create Lecturer Account
 
-        </h1>
+          <p className="text-gray-600 mb-8">
 
+            Create an official lecturer login account.
 
+          </p>
 
 
+          {message && (
 
-        <form
+            <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-6">
 
-          onSubmit={createLecturer}
+              {message}
 
-          className="space-y-4"
+            </div>
 
-        >
+          )}
 
 
+          {error && (
 
+            <div className="bg-red-100 text-red-800 p-4 rounded-lg mb-6">
 
-          <input
+              {error}
 
-            name="full_name"
+            </div>
 
-            value={form.full_name}
+          )}
 
-            onChange={handleChange}
 
-            placeholder="Full Name"
-
-            className="w-full border p-3 rounded-lg"
-
-            required
-
-          />
-
-
-
-
-
-          <input
-
-            name="email"
-
-            type="email"
-
-            value={form.email}
-
-            onChange={handleChange}
-
-            placeholder="Email"
-
-            className="w-full border p-3 rounded-lg"
-
-            required
-
-          />
-
-
-
-
-
-          <input
-
-            name="password"
-
-            type="password"
-
-            value={form.password}
-
-            onChange={handleChange}
-
-            placeholder="Temporary Password"
-
-            className="w-full border p-3 rounded-lg"
-
-            required
-
-          />
-
-
-
-
-
-          <input
-
-            name="department"
-
-            value={form.department}
-
-            onChange={handleChange}
-
-            placeholder="Department"
-
-            className="w-full border p-3 rounded-lg"
-
-            required
-
-          />
-
-
-
-
-
-          <button
-
-            className="w-full bg-blue-900 text-white p-3 rounded-lg"
-
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
           >
 
-            Create Lecturer
 
-          </button>
+            <div>
+
+              <label className="block font-semibold mb-2">
+
+                Full Name
+
+              </label>
+
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) =>
+                  setFullName(e.target.value)
+                }
+                placeholder="Enter lecturer's full name"
+                className="w-full border rounded-lg p-3"
+                required
+              />
+
+            </div>
 
 
 
+            <div>
 
-        </form>
+              <label className="block font-semibold mb-2">
+
+                Email
+
+              </label>
+
+              <input
+                type="email"
+                value={email}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
+                placeholder="lecturer@example.com"
+                className="w-full border rounded-lg p-3"
+                required
+              />
+
+            </div>
 
 
 
+            <div>
+
+              <label className="block font-semibold mb-2">
+
+                Temporary Password
+
+              </label>
+
+              <input
+                type="password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
+                placeholder="Enter temporary password"
+                className="w-full border rounded-lg p-3"
+                minLength={6}
+                required
+              />
+
+            </div>
 
 
-        <p className="mt-5 text-center">
 
-          {message}
+            <div>
 
-        </p>
+              <label className="block font-semibold mb-2">
+
+                Department
+
+              </label>
+
+              <input
+                type="text"
+                value={department}
+                onChange={(e) =>
+                  setDepartment(e.target.value)
+                }
+                className="w-full border rounded-lg p-3"
+              />
+
+            </div>
 
 
 
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 disabled:opacity-50"
+            >
+
+              {loading
+                ? "Creating Lecturer..."
+                : "Create Lecturer Account"
+              }
+
+            </button>
+
+
+          </form>
+
+        </div>
 
       </div>
 
-
     </div>
 
-
   )
-
-
 }
 
 

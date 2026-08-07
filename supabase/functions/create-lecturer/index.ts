@@ -1,234 +1,205 @@
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-
 const corsHeaders = {
-
   "Access-Control-Allow-Origin": "*",
-
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
-
 }
 
-
-
-
-
-Deno.serve(async (req) => {
-
-
-  // Handle browser preflight request
-
+serve(async (req) => {
   if (req.method === "OPTIONS") {
-
-    return new Response(
-
-      "ok",
-
-      {
-        headers: corsHeaders
-      }
-
-    )
-
+    return new Response("ok", {
+      headers: corsHeaders,
+    })
   }
-
-
-
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
 
-
-    const {
-      full_name,
-      email,
-      password,
-      department
-    } = await req.json()
-
-
-
-
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error("Supabase environment variables are missing.")
+    }
 
     const supabaseAdmin = createClient(
-
-      Deno.env.get("SUPABASE_URL")!,
-
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-
+      supabaseUrl,
+      serviceRoleKey
     )
 
+    const authHeader = req.headers.get("Authorization")
 
-
-
-
-    const { data, error } = await supabaseAdmin.auth.admin.createUser({
-
-      email,
-
-      password,
-
-      email_confirm: true
-
-    })
-
-
-
-
-
-    if (error) {
-
-
+    if (!authHeader) {
       return new Response(
-
         JSON.stringify({
-
-          error: error.message
-
+          error: "Unauthorized",
         }),
-
         {
-
-          status: 400,
-
+          status: 401,
           headers: {
-
             ...corsHeaders,
-
-            "Content-Type": "application/json"
-
-          }
-
+            "Content-Type": "application/json",
+          },
         }
-
       )
-
-
     }
 
+    const token = authHeader.replace("Bearer ", "")
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token)
 
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+        }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    }
 
+    const { data: adminProfile, error: profileError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single()
 
+    if (
+      profileError ||
+      !adminProfile ||
+      adminProfile.role !== "admin"
+    ) {
+      return new Response(
+        JSON.stringify({
+          error: "Only administrators can create lecturer accounts.",
+        }),
+        {
+          status: 403,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    }
 
+    const body = await req.json()
 
-    const { error: profileError } = await supabaseAdmin
+    const {
+      email,
+      password,
+      full_name,
+      department,
+    } = body
 
-      .from("profiles")
+    if (!email || !password || !full_name) {
+      return new Response(
+        JSON.stringify({
+          error: "Email, password and full name are required.",
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    }
 
-      .insert({
-
-        id: data.user.id,
-
-        full_name,
-
+    const {
+      data: createdUser,
+      error: createUserError,
+    } =
+      await supabaseAdmin.auth.admin.createUser({
         email,
-
-        department,
-
-        role: "lecturer"
-
+        password,
+        email_confirm: true,
       })
 
-
-
-
-
-
-
-    if (profileError) {
-
-
+    if (createUserError) {
       return new Response(
-
         JSON.stringify({
-
-          error: profileError.message
-
+          error: createUserError.message,
         }),
-
         {
-
           status: 400,
-
           headers: {
-
             ...corsHeaders,
-
-            "Content-Type": "application/json"
-
-          }
-
+            "Content-Type": "application/json",
+          },
         }
-
       )
-
-
     }
 
+    const { error: insertProfileError } =
+      await supabaseAdmin
+        .from("profiles")
+        .insert({
+          id: createdUser.user.id,
+          full_name,
+          email,
+          role: "lecturer",
+          department: department || null,
+        })
 
+    if (insertProfileError) {
 
+      await supabaseAdmin.auth.admin.deleteUser(
+        createdUser.user.id
+      )
 
-
-
+      return new Response(
+        JSON.stringify({
+          error: insertProfileError.message,
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    }
 
     return new Response(
-
       JSON.stringify({
-
-        message: "Lecturer created successfully"
-
+        success: true,
+        message: "Lecturer account created successfully.",
+        userId: createdUser.user.id,
       }),
-
       {
-
+        status: 200,
         headers: {
-
           ...corsHeaders,
-
-          "Content-Type": "application/json"
-
-        }
-
+          "Content-Type": "application/json",
+        },
       }
-
     )
 
-
-
-
-
-
-
-  } catch(error) {
-
+  } catch (error) {
 
     return new Response(
-
       JSON.stringify({
-
-        error: error.message
-
+        error: error.message,
       }),
-
       {
-
         status: 500,
-
         headers: {
-
           ...corsHeaders,
-
-          "Content-Type": "application/json"
-
-        }
-
+          "Content-Type": "application/json",
+        },
       }
-
     )
-
-
   }
-
-
 })
