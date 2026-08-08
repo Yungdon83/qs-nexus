@@ -1,6 +1,6 @@
 
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-
+import Timetable from "./pages/Timetable"
 import ProtectedRoute from "./components/ProtectedRoute"
 import Navbar from "./components/Navbar"
 
@@ -93,6 +93,11 @@ function App() {
           path="/login"
           element={<Login />}
         />
+
+        <Route
+  path="/timetable"
+  element={<Timetable />}
+/>
 
         <Route
           path="/register"
