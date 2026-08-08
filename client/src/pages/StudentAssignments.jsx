@@ -1,201 +1,258 @@
-import { useEffect } from "react"
-import { Link } from "react-router-dom"
-import { useAuth } from "../contexts/AuthContext"
-import useAssignments from "../hooks/useAssignments"
 
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+import { supabase } from "../lib/supabase"
 
 function StudentAssignments() {
-
-
-  const { profile } = useAuth()
-
-
-  const {
-    assignments,
-    loading,
-    fetchAssignments
-  } = useAssignments()
-
-
-
-
+  const [assignments, setAssignments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState(null)
 
   useEffect(() => {
-
-    fetchAssignments()
-
+    loadAssignments()
   }, [])
 
+  async function loadAssignments() {
+    setLoading(true)
 
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
 
+      if (userError) {
+        console.error(userError)
+        alert(userError.message)
+        setLoading(false)
+        return
+      }
 
+      if (!user) {
+        alert("You must be logged in.")
+        setLoading(false)
+        return
+      }
 
+      const { data: profileData, error: profileError } =
+        await supabase
+          .from("profiles")
+          .select("id, full_name, level, department")
+          .eq("id", user.id)
+          .maybeSingle()
 
+      if (profileError) {
+        console.error(profileError)
+        alert(profileError.message)
+        setLoading(false)
+        return
+      }
 
-  const studentAssignments = assignments.filter(
-    (assignment) =>
-      assignment.level === profile?.level
-  )
+      if (!profileData) {
+        alert("Student profile not found.")
+        setLoading(false)
+        return
+      }
 
+      setProfile(profileData)
 
+      if (!profileData.level) {
+        setAssignments([])
+        setLoading(false)
+        return
+      }
 
+      const {
+        data: assignmentData,
+        error: assignmentError,
+      } = await supabase
+        .from("assignments")
+        .select(
+          "id, created_at, title, description, course_code, level, due_date, created_by"
+        )
+        .eq("level", profileData.level)
+        .order("due_date", {
+          ascending: true,
+          nullsFirst: false,
+        })
 
+      if (assignmentError) {
+        console.error(assignmentError)
+        alert(assignmentError.message)
+        setLoading(false)
+        return
+      }
 
+      setAssignments(assignmentData || [])
+    } catch (error) {
+      console.error(error)
+      alert("Unable to load assignments.")
+    }
 
-
-  if (loading) {
-
-    return (
-
-      <div className="p-10 text-xl">
-
-        Loading assignments...
-
-      </div>
-
-    )
-
+    setLoading(false)
   }
 
+  function isOverdue(dueDate) {
+    if (!dueDate) {
+      return false
+    }
 
+    return new Date(dueDate) < new Date()
+  }
 
+  function formatDate(date) {
+    if (!date) {
+      return "No due date"
+    }
 
+    const formattedDate = new Date(date)
 
+    if (Number.isNaN(formattedDate.getTime())) {
+      return "Invalid date"
+    }
 
+    return formattedDate.toLocaleString()
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p className="text-xl font-bold text-blue-900">
+          Loading assignments...
+        </p>
+      </div>
+    )
+  }
 
   return (
-
     <div className="min-h-screen bg-gray-100 p-8">
-
 
       <div className="max-w-6xl mx-auto">
 
+        <div className="mb-8">
 
-        <h1 className="text-3xl font-bold text-blue-900 mb-8">
+          <h1 className="text-3xl font-bold text-blue-900">
+            My Assignments
+          </h1>
 
-          My Assignments
+          <p className="text-gray-600 mt-2">
+            Assignments for{" "}
+            {profile?.level || "your level"}{" "}
+            -{" "}
+            {profile?.department || "your department"}
+          </p>
 
-        </h1>
+        </div>
 
+        {assignments.length === 0 ? (
 
+          <div className="bg-white rounded-xl shadow p-8 text-center">
 
+            <h2 className="text-xl font-bold text-gray-700">
+              No assignments available
+            </h2>
 
+            <p className="text-gray-500 mt-2">
+              There are currently no assignments for your level.
+            </p>
 
-        {
-          studentAssignments.length === 0 ? (
+          </div>
 
+        ) : (
 
-            <div className="bg-white rounded-xl shadow p-8">
+          <div className="grid md:grid-cols-2 gap-6">
 
-              No assignments available.
+            {assignments.map((assignment) => {
 
-            </div>
+              const overdue = isOverdue(
+                assignment.due_date
+              )
 
+              return (
 
-          ) : (
+                <div
+                  key={assignment.id}
+                  className="bg-white rounded-xl shadow p-6"
+                >
 
+                  <div className="flex justify-between items-start gap-4">
 
-            <div className="grid md:grid-cols-2 gap-6">
+                    <div>
 
-
-              {
-                studentAssignments.map((assignment) => (
-
-
-                  <div
-
-                    key={assignment.id}
-
-                    className="bg-white rounded-xl shadow p-6"
-
-                  >
-
-
-                    <h2 className="text-2xl font-bold text-blue-900">
-
-                      {assignment.title}
-
-                    </h2>
-
-
-
-
-                    <p className="mt-3 text-gray-700">
-
-                      {assignment.description}
-
-                    </p>
-
-
-
-
-                    <div className="mt-4 space-y-2">
-
-
-                      <p>
-
-                        <strong>Course:</strong>{" "}
-
-                        {assignment.course_code}
-
+                      <p className="text-sm font-bold text-blue-700">
+                        {assignment.course_code || "Course"}
                       </p>
 
-
-
-                      <p>
-
-                        <strong>Due Date:</strong>{" "}
-
-                        {assignment.due_date}
-
-                      </p>
-
-
+                      <h2 className="text-xl font-bold text-gray-900 mt-1">
+                        {assignment.title}
+                      </h2>
 
                     </div>
 
+                    {overdue ? (
 
+                      <span className="bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full">
+                        Overdue
+                      </span>
 
+                    ) : (
 
+                      <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
+                        Open
+                      </span>
 
-                    <Link
-
-                      to={`/submit-assignment/${assignment.id}`}
-
-                      className="inline-block mt-6 bg-blue-900 text-white px-5 py-2 rounded-lg"
-
-                    >
-
-                      Submit Assignment
-
-                    </Link>
-
-
+                    )}
 
                   </div>
 
+                  <p className="text-gray-600 mt-4 whitespace-pre-wrap">
+                    {assignment.description ||
+                      "No description provided."}
+                  </p>
 
-                ))
+                  <div className="mt-5 bg-gray-50 rounded-lg p-4">
 
-              }
+                    <p className="text-sm text-gray-500">
+                      Due Date
+                    </p>
 
+                    <p className="font-semibold">
+                      {formatDate(
+                        assignment.due_date
+                      )}
+                    </p>
 
-            </div>
+                  </div>
 
+                  <Link
+                    to={
+                      "/submit-assignment/" +
+                      assignment.id
+                    }
+                    className={
+                      overdue
+                        ? "block text-center mt-5 w-full p-3 rounded-lg font-semibold bg-gray-400 text-white hover:bg-gray-500"
+                        : "block text-center mt-5 w-full p-3 rounded-lg font-semibold bg-blue-900 text-white hover:bg-blue-800"
+                    }
+                  >
+                    {overdue
+                      ? "View Assignment"
+                      : "Submit Assignment"}
+                  </Link>
 
-          )
-        }
+                </div>
 
+              )
+            })}
 
+          </div>
+
+        )}
 
       </div>
 
-
     </div>
-
   )
-
 }
-
 
 export default StudentAssignments

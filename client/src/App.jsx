@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 import ProtectedRoute from "./components/ProtectedRoute"
@@ -49,135 +50,56 @@ import CreateAssignment from "./pages/CreateAssignment"
 import ManageAssignments from "./pages/ManageAssignments"
 import GradeSubmissions from "./pages/GradeSubmissions"
 
-
-
 function App() {
-
   return (
-
     <BrowserRouter>
-
       <Navbar />
 
       <Routes>
 
-
-        {/* PUBLIC */}
+        {/* ================= PUBLIC ================= */}
 
         <Route
           path="/"
           element={<Home />}
         />
 
-
         <Route
           path="/about"
           element={<About />}
         />
-
 
         <Route
           path="/courses"
           element={<Courses />}
         />
 
-
         <Route
           path="/courses/:level"
           element={<LevelCourses />}
         />
-
 
         <Route
           path="/course/:courseCode"
           element={<CourseDetails />}
         />
 
-
         <Route
           path="/resources"
           element={<Resources />}
         />
-
 
         <Route
           path="/login"
           element={<Login />}
         />
 
-
         <Route
           path="/register"
           element={<Register />}
         />
 
-
-
-        {/* ADMIN */}
-
-        <Route
-          path="/manage-students"
-          element={
-            <ProtectedRoute role="admin">
-              <ManageStudents />
-            </ProtectedRoute>
-          }
-        />
-
-
-        <Route
-          path="/manage-lecturers"
-          element={
-            <ProtectedRoute role="admin">
-              <ManageLecturers />
-            </ProtectedRoute>
-          }
-        />
-
-
-        <Route
-          path="/create-lecturer"
-          element={
-            <ProtectedRoute role="admin">
-              <CreateLecturer />
-            </ProtectedRoute>
-          }
-        />
-
-
-        <Route
-          path="/manage-courses"
-          element={
-            <ProtectedRoute role="admin">
-              <ManageCourses />
-            </ProtectedRoute>
-          }
-        />
-
-
-
-        {/* DASHBOARDS */}
-
-
-        <Route
-          path="/student-dashboard"
-          element={
-            <ProtectedRoute role="student">
-              <StudentDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-
-        <Route
-          path="/lecturer-dashboard"
-          element={
-            <ProtectedRoute role="lecturer">
-              <LecturerDashboard />
-            </ProtectedRoute>
-          }
-        />
-
+        {/* ================= ADMIN ================= */}
 
         <Route
           path="/admin-dashboard"
@@ -188,9 +110,52 @@ function App() {
           }
         />
 
+        <Route
+          path="/manage-students"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageStudents />
+            </ProtectedRoute>
+          }
+        />
 
+        <Route
+          path="/manage-lecturers"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageLecturers />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* STUDENT */}
+        <Route
+          path="/create-lecturer"
+          element={
+            <ProtectedRoute role="admin">
+              <CreateLecturer />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/manage-courses"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageCourses />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ================= STUDENT ================= */}
+
+        <Route
+          path="/student-dashboard"
+          element={
+            <ProtectedRoute role="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/student-submissions"
@@ -201,7 +166,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/student-announcements"
           element={
@@ -210,7 +174,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
         <Route
           path="/student-assignments"
@@ -221,7 +184,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/submit-assignment/:id"
           element={
@@ -231,9 +193,18 @@ function App() {
           }
         />
 
+        {/* ================= LECTURER ================= */}
 
+        <Route
+          path="/lecturer-dashboard"
+          element={
+            <ProtectedRoute role="lecturer">
+              <LecturerDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* RESOURCES */}
+        {/* Resources */}
 
         <Route
           path="/upload-resource"
@@ -244,7 +215,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/manage-resources"
           element={
@@ -254,9 +224,7 @@ function App() {
           }
         />
 
-
-
-        {/* ANNOUNCEMENTS */}
+        {/* Announcements */}
 
         <Route
           path="/create-announcement"
@@ -267,7 +235,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/manage-announcements"
           element={
@@ -276,7 +243,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
         <Route
           path="/edit-announcement/:id"
@@ -287,9 +253,7 @@ function App() {
           }
         />
 
-
-
-        {/* EVENTS */}
+        {/* Events */}
 
         <Route
           path="/create-event"
@@ -300,7 +264,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/manage-events"
           element={
@@ -309,7 +272,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
         <Route
           path="/edit-event/:id"
@@ -320,9 +282,7 @@ function App() {
           }
         />
 
-
-
-        {/* ASSIGNMENTS */}
+        {/* Assignments */}
 
         <Route
           path="/create-assignment"
@@ -333,7 +293,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/manage-assignments"
           element={
@@ -342,7 +301,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
         <Route
           path="/grade-submissions"
@@ -353,14 +311,10 @@ function App() {
           }
         />
 
-
       </Routes>
-
     </BrowserRouter>
-
   )
-
 }
 
-
 export default App
+
