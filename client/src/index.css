@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -10,8 +14,121 @@ body {
   font-family: Inter, sans-serif;
   background: #f8fafc;
   color: #1f2937;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
-html {
-  scroll-behavior: smooth;
+/* =========================
+   DARK MODE - GLOBAL
+   ========================= */
+
+html.dark body {
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+/* Main light backgrounds */
+
+html.dark .bg-gray-100 {
+  background-color: #0f172a !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: #1e293b !important;
+}
+
+html.dark .bg-white {
+  background-color: #1e293b !important;
+}
+
+/* Text */
+
+html.dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+html.dark .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+html.dark .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+html.dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+html.dark .text-black {
+  color: #f8fafc !important;
+}
+
+/* Borders */
+
+html.dark .border {
+  border-color: #475569 !important;
+}
+
+html.dark .border-gray-200 {
+  border-color: #475569 !important;
+}
+
+html.dark .border-gray-300 {
+  border-color: #64748b !important;
+}
+
+/* Inputs */
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Links */
+
+html.dark a {
+  transition: color 0.2s ease;
+}
+
+/* Shadows */
+
+html.dark .shadow,
+html.dark .shadow-md,
+html.dark .shadow-lg,
+html.dark .shadow-xl {
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* =========================
+   SMOOTH THEME TRANSITION
+   ========================= */
+
+body,
+nav,
+div,
+section,
+main,
+header,
+input,
+textarea,
+select,
+button {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+html.dark {
+  color-scheme: dark;
 }
