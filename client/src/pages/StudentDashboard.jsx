@@ -165,6 +165,15 @@ function StudentDashboard() {
               title="Learning Resources"
               click={() => navigate("/resources")}
             />
+            <ActionButton
+  title="GPA Calculator"
+  click={() => navigate("/gpa-calculator")}
+/>
+<ActionButton
+  title="🤖 AI Study Assistant"
+  click={() => navigate("/study-assistant")}
+/>
+
 
             <ActionButton
               title="Announcements"
@@ -201,6 +210,14 @@ function StudentDashboard() {
                 <p className="text-gray-600 dark:text-gray-400">
                   Unit: {course.unit}
                 </p>
+                <button
+  onClick={() =>
+    navigate(`/course-quiz/${course.course_code}`)
+  }
+  className="mt-4 bg-blue-900 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800"
+>
+  🧠 Take Course Quiz
+</button>
 
               </div>
 

@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Timetable from "./pages/Timetable"
 import ProtectedRoute from "./components/ProtectedRoute"
 import Navbar from "./components/Navbar"
+import GPACalculator from "./pages/GPACalculator"
+import CourseQuiz from "./pages/CourseQuiz"
+import StudyAssistant from "./pages/StudyAssistant"
 
 // Public Pages
 import Home from "./pages/Home"
@@ -98,6 +101,32 @@ function App() {
   path="/timetable"
   element={<Timetable />}
 />
+<Route
+  path="/gpa-calculator"
+  element={
+    <ProtectedRoute role="student">
+      <GPACalculator />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/course-quiz/:courseCode"
+  element={
+    <ProtectedRoute role="student">
+      <CourseQuiz />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/study-assistant"
+  element={
+    <ProtectedRoute role="student">
+      <StudyAssistant />
+    </ProtectedRoute>
+  }
+/>
+
+
 
         <Route
           path="/register"
