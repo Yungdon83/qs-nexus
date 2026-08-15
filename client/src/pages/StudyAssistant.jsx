@@ -4,10 +4,38 @@ import { supabase } from "../lib/supabase"
 function StudyAssistant() {
   const [courses, setCourses] = useState([])
   const [selectedCourse, setSelectedCourse] = useState("")
+  const [studyMode, setStudyMode] = useState("explain")
   const [question, setQuestion] = useState("")
   const [messages, setMessages] = useState([])
   const [loadingCourses, setLoadingCourses] = useState(true)
   const [loading, setLoading] = useState(false)
+
+  const studyModes = [
+    {
+      id: "explain",
+      icon: "📖",
+      title: "Explain",
+      description: "Understand a topic",
+    },
+    {
+      id: "solve",
+      icon: "🧮",
+      title: "Solve",
+      description: "Work through a problem",
+    },
+    {
+      id: "summarize",
+      icon: "📝",
+      title: "Summarize",
+      description: "Create revision notes",
+    },
+    {
+      id: "exam",
+      icon: "🎯",
+      title: "Exam Revision",
+      description: "Prepare for exams",
+    },
+  ]
 
   useEffect(() => {
     loadCourses()
@@ -99,6 +127,7 @@ function StudyAssistant() {
                 selectedCourseData?.course_code || "",
               courseTitle:
                 selectedCourseData?.course_title || "",
+              studyMode,
               history,
             },
           }
@@ -233,6 +262,55 @@ function StudyAssistant() {
 
         </div>
 
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow p-5 md:p-6 mt-6">
+
+          <div className="flex items-center justify-between mb-4">
+
+            <div>
+              <h2 className="text-xl font-bold text-blue-900 dark:text-blue-400">
+                Study Mode
+              </h2>
+
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Choose how you want the AI to help you.
+              </p>
+            </div>
+
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+            {studyModes.map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => setStudyMode(mode.id)}
+                className={`text-left p-4 rounded-xl border-2 transition ${
+                  studyMode === mode.id
+                    ? "border-blue-900 bg-blue-50 dark:bg-blue-950"
+                    : "border-gray-200 dark:border-gray-700 hover:border-blue-400"
+                }`}
+              >
+
+                <div className="text-2xl">
+                  {mode.icon}
+                </div>
+
+                <h3 className="font-bold mt-2 text-gray-800 dark:text-white">
+                  {mode.title}
+                </h3>
+
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {mode.description}
+                </p>
+
+              </button>
+            ))}
+
+          </div>
+
+        </div>
+
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow mt-6 overflow-hidden">
 
           <div className="p-5 md:p-6 border-b dark:border-gray-700">
@@ -242,6 +320,15 @@ function StudyAssistant() {
                 ? `${selectedCourseData.course_code} - ${selectedCourseData.course_title}`
                 : "Study Assistant"}
             </h2>
+
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Mode:{" "}
+              {
+                studyModes.find(
+                  (mode) => mode.id === studyMode
+                )?.title
+              }
+            </p>
 
           </div>
 
@@ -258,10 +345,9 @@ function StudyAssistant() {
                   What would you like to learn?
                 </h3>
 
-                <p className="text-gray-500 dark:text-gray-400 mt-2">
-                  Ask me to explain a concept, solve a
-                  problem, summarize a topic, or help you
-                  prepare for an exam.
+                <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-xl mx-auto">
+                  Select a study mode above and ask the
+                  AI about your course.
                 </p>
 
               </div>

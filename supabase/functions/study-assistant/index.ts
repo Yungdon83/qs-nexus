@@ -2,7 +2,37 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods":
+    "POST, OPTIONS",
+}
+
+type HistoryMessage = {
+  role: "user" | "model"
+  text: string
+}
+
+type RequestBody = {
+  question?: string
+  courseCode?: string
+  courseTitle?: string
+  studyMode?: string
+  history?: HistoryMessage[]
+}
+
+type GeminiPart = {
+  text?: string
+}
+
+type GeminiContent = {
+  parts?: GeminiPart[]
+}
+
+type GeminiCandidate = {
+  content?: GeminiContent
+}
+
+type GeminiResponse = {
+  candidates?: GeminiCandidate[]
 }
 
 Deno.serve(async (req) => {
@@ -18,7 +48,7 @@ Deno.serve(async (req) => {
     if (!apiKey) {
       return new Response(
         JSON.stringify({
-          error: "GEMINI_API_KEY is missing",
+          error: "GEMINI_API_KEY is not configured",
         }),
         {
           status: 500,
@@ -30,14 +60,32 @@ Deno.serve(async (req) => {
       )
     }
 
-    const body = await req.json()
+    const body: RequestBody = await req.json()
 
-    const question = body.question?.trim()
-    const courseCode = body.courseCode || ""
-    const courseTitle = body.courseTitle || ""
-    const history = Array.isArray(body.history)
-      ? body.history
-      : []
+    const question =
+      typeof body.question === "string"
+        ? body.question.trim()
+        : ""
+
+    const courseCode =
+      typeof body.courseCode === "string"
+        ? body.courseCode
+        : ""
+
+    const courseTitle =
+      typeof body.courseTitle === "string"
+        ? body.courseTitle
+        : ""
+
+    const studyMode =
+      typeof body.studyMode === "string"
+        ? body.studyMode
+        : "explain"
+
+    const history: HistoryMessage[] =
+      Array.isArray(body.history)
+        ? body.history
+        : []
 
     if (!question) {
       return new Response(
@@ -54,17 +102,84 @@ Deno.serve(async (req) => {
       )
     }
 
-    const contents = [
-      {
-        role: "user",
-        parts: [
-          {
-            text: `
+    const modeInstructions = {
+      explain: `
+Explain the topic clearly and simply.
+
+Start from the basic idea.
+Break difficult concepts into smaller parts.
+Use examples where useful.
+Make the explanation appropriate for a university student.
+`,
+
+      solve: `
+Help the student solve the problem step by step.
+
+Show the relevant formula when applicable.
+Define the variables.
+Substitute values carefully.
+Show the calculations clearly.
+Give the final answer.
+For conceptual questions, provide logical step-by-step reasoning.
+`,
+
+      summarize: `
+Create concise but useful study notes.
+
+Include:
+- Important definitions
+- Key concepts
+- Important formulas
+- Important facts
+- Useful examples
+
+Use headings and bullet points where appropriate.
+Make the result easy to revise.
+`,
+
+      exam: `
+Act as an examination revision assistant.
+
+Identify the most important concepts.
+Highlight definitions and formulas students should remember.
+Point out common mistakes.
+Explain topics likely to be tested.
+Finish with several practice questions.
+Do not immediately provide answers to the practice questions.
+`,
+    }
+
+    const selectedMode =
+      modeInstructions[
+        studyMode as keyof typeof modeInstructions
+      ] || modeInstructions.explain
+
+    const previousConversation =
+      history.length > 0
+        ? history
+            .filter(
+              (message: HistoryMessage) =>
+                typeof message.text === "string" &&
+                message.text.trim() !== ""
+            )
+            .slice(-12)
+            .map(
+              (message: HistoryMessage) =>
+                `${
+                  message.role === "user"
+                    ? "Student"
+                    : "AI Assistant"
+                }: ${message.text}`
+            )
+            .join("\n\n")
+        : "No previous conversation."
+
+    const prompt = `
 You are the QS Nexus AI Study Assistant.
 
-QS Nexus is an academic portal for Quantity Surveying students.
+QS Nexus is an academic learning platform for Quantity Surveying students.
 
-The student is currently studying:
+COURSE
 
 Course code:
 ${courseCode || "Not specified"}
@@ -72,70 +187,62 @@ ${courseCode || "Not specified"}
 Course title:
 ${courseTitle || "Not specified"}
 
-Your job is to help the student understand academic topics.
 
-Rules:
+STUDY MODE
+
+${selectedMode}
+
+
+GENERAL INSTRUCTIONS
 
 - Give accurate academic answers.
-- Explain difficult concepts clearly.
-- Use examples when useful.
-- For calculations, show the working steps.
+- Explain concepts clearly.
+- Do not invent facts.
+- Use appropriate examples.
+- For numerical problems, show the working.
 - Explain formulas and define variables.
-- Maintain context from the previous conversation.
-- If the student asks a follow-up question, use the conversation history.
-- Do not invent information.
-- If you are unsure, clearly say so.
-- Keep answers useful and reasonably concise.
-- Do not pretend to be a human lecturer.
+- Keep the response organized.
+- If the student asks a follow-up question, use the previous conversation.
+- Do not claim to be a human lecturer.
+- If information is uncertain, say so clearly.
 
-The student is starting a conversation.
-`,
-          },
-        ],
-      },
-    ]
 
-    for (const message of history) {
-      if (
-        message.role !== "user" &&
-        message.role !== "model"
-      ) {
-        continue
-      }
+PREVIOUS CONVERSATION
 
-      if (!message.text) {
-        continue
-      }
+${previousConversation}
 
-      contents.push({
-        role: message.role,
-        parts: [
-          {
-            text: message.text,
-          },
-        ],
-      })
-    }
 
-    contents.push({
-      role: "user",
-      parts: [
-        {
-          text: question,
-        },
-      ],
-    })
+CURRENT STUDENT QUESTION
+
+${question}
+
+
+Now answer the student's question according to the selected study mode.
+`
 
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
       {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
           "x-goog-api-key": apiKey,
         },
+
         body: JSON.stringify({
-          contents,
+          contents: [
+            {
+              role: "user",
+
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+
           generationConfig: {
             maxOutputTokens: 2500,
           },
@@ -147,7 +254,7 @@ The student is starting a conversation.
 
     if (!response.ok) {
       console.error(
-        "GEMINI ERROR:",
+        "GEMINI API ERROR:",
         responseText
       )
 
@@ -158,6 +265,7 @@ The student is starting a conversation.
         }),
         {
           status: response.status,
+
           headers: {
             ...corsHeaders,
             "Content-Type": "application/json",
@@ -166,10 +274,11 @@ The student is starting a conversation.
       )
     }
 
-    let geminiData
+    let geminiData: GeminiResponse
 
     try {
-      geminiData = JSON.parse(responseText)
+      geminiData =
+        JSON.parse(responseText) as GeminiResponse
     } catch {
       return new Response(
         JSON.stringify({
@@ -178,6 +287,7 @@ The student is starting a conversation.
         }),
         {
           status: 500,
+
           headers: {
             ...corsHeaders,
             "Content-Type": "application/json",
@@ -187,20 +297,28 @@ The student is starting a conversation.
     }
 
     const answer =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text
+      geminiData.candidates?.[0]?.content?.parts
+        ?.map(
+          (part: GeminiPart) =>
+            part.text || ""
+        )
+        .join("")
+        .trim()
 
     if (!answer) {
       console.error(
-        "NO GEMINI ANSWER:",
+        "GEMINI RETURNED NO ANSWER:",
         JSON.stringify(geminiData)
       )
 
       return new Response(
         JSON.stringify({
           error: "Gemini returned no answer",
+          details: geminiData,
         }),
         {
           status: 500,
+
           headers: {
             ...corsHeaders,
             "Content-Type": "application/json",
@@ -215,6 +333,7 @@ The student is starting a conversation.
       }),
       {
         status: 200,
+
         headers: {
           ...corsHeaders,
           "Content-Type": "application/json",
@@ -230,6 +349,7 @@ The student is starting a conversation.
     return new Response(
       JSON.stringify({
         error: "Unable to process question",
+
         details:
           error instanceof Error
             ? error.message
@@ -237,6 +357,7 @@ The student is starting a conversation.
       }),
       {
         status: 500,
+
         headers: {
           ...corsHeaders,
           "Content-Type": "application/json",
