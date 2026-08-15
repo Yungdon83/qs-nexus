@@ -6,6 +6,10 @@ import Navbar from "./components/Navbar"
 import GPACalculator from "./pages/GPACalculator"
 import CourseQuiz from "./pages/CourseQuiz"
 import StudyAssistant from "./pages/StudyAssistant"
+import QuizHistory from "./pages/QuizHistory"
+import QuizLeaderboard from "./pages/QuizLeaderboard"
+import QuizReview from "./pages/QuizReview"
+import QuizPerformance from "./pages/QuizPerformance"
 
 // Public Pages
 import Home from "./pages/Home"
@@ -83,6 +87,16 @@ function App() {
         />
 
         <Route
+  path="/quiz-history"
+  element={<QuizHistory />}
+/>
+
+<Route
+  path="/quiz-leaderboard"
+  element={<QuizLeaderboard />}
+/>
+
+        <Route
           path="/course/:courseCode"
           element={<CourseDetails />}
         />
@@ -117,6 +131,15 @@ function App() {
     </ProtectedRoute>
   }
 />
+<Route
+  path="/quiz-review/:attemptId"
+  element={<QuizReview />}
+/>
+<Route
+  path="/quiz-performance"
+  element={<QuizPerformance />}
+/>
+
 <Route
   path="/study-assistant"
   element={
