@@ -47,7 +47,9 @@ function ProtectedRoute({ children, role }) {
         return
       }
 
-      if (profile?.role === role) {
+      const allowedRoles = Array.isArray(role) ? role : [role]
+
+      if (allowedRoles.includes(profile?.role)) {
         setAllowed(true)
       }
 

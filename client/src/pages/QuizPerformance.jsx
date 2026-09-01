@@ -61,10 +61,7 @@ function QuizPerformance() {
         generateAIAnalysis(attemptData)
       }
     } catch (err) {
-      console.error(
-        "PERFORMANCE ERROR:",
-        err
-      )
+      console.error("PERFORMANCE ERROR:", err)
 
       setError(
         err instanceof Error
@@ -76,13 +73,8 @@ function QuizPerformance() {
     }
   }
 
-  async function generateAIAnalysis(
-    attemptData
-  ) {
-    if (
-      !attemptData ||
-      attemptData.length === 0
-    ) {
+  async function generateAIAnalysis(attemptData = attempts) {
+    if (!attemptData || attemptData.length === 0) {
       return
     }
 
@@ -90,13 +82,33 @@ function QuizPerformance() {
     setAnalysisError("")
 
     try {
+      const analysisAttempts = attemptData
+        .slice(0, 10)
+        .map((attempt) => ({
+          id: attempt.id,
+          course_code: attempt.course_code,
+          course_title: attempt.course_title,
+          question_count: Number(
+            attempt.question_count || 0
+          ),
+          score: Number(attempt.score || 0),
+          percentage: Number(
+            attempt.percentage || 0
+          ),
+          time_taken_seconds: Number(
+            attempt.time_taken_seconds || 0
+          ),
+          questions: attempt.questions || [],
+          answers: attempt.answers || [],
+          created_at: attempt.created_at,
+        }))
+
       const { data, error } =
         await supabase.functions.invoke(
           "analyze-performance",
           {
             body: {
-              attempts:
-                attemptData.slice(0, 10),
+              attempts: analysisAttempts,
             },
           }
         )
@@ -104,11 +116,6 @@ function QuizPerformance() {
       console.log(
         "AI PERFORMANCE ANALYSIS:",
         data
-      )
-
-      console.log(
-        "AI PERFORMANCE ERROR:",
-        error
       )
 
       if (error) {
@@ -167,6 +174,8 @@ function QuizPerformance() {
         accuracy: 0,
         average: 0,
         best: 0,
+        totalTime: 0,
+        averageTime: 0,
       }
     }
 
@@ -175,9 +184,7 @@ function QuizPerformance() {
     const questions = attempts.reduce(
       (total, attempt) =>
         total +
-        Number(
-          attempt.question_count || 0
-        ),
+        Number(attempt.question_count || 0),
       0
     )
 
@@ -199,20 +206,30 @@ function QuizPerformance() {
       attempts.reduce(
         (total, attempt) =>
           total +
-          Number(
-            attempt.percentage || 0
-          ),
+          Number(attempt.percentage || 0),
         0
       ) / quizzes
     )
 
     const best = Math.max(
       ...attempts.map((attempt) =>
-        Number(
-          attempt.percentage || 0
-        )
+        Number(attempt.percentage || 0)
       )
     )
+
+    const totalTime = attempts.reduce(
+      (total, attempt) =>
+        total +
+        Number(
+          attempt.time_taken_seconds || 0
+        ),
+      0
+    )
+
+    const averageTime =
+      quizzes > 0
+        ? Math.round(totalTime / quizzes)
+        : 0
 
     return {
       quizzes,
@@ -221,77 +238,173 @@ function QuizPerformance() {
       accuracy,
       average,
       best,
+      totalTime,
+      averageTime,
     }
   }, [attempts])
 
-  const coursePerformance =
-    useMemo(() => {
-      const grouped = {}
+  const coursePerformance = useMemo(() => {
+    const grouped = {}
 
-      attempts.forEach((attempt) => {
-        const code =
-          attempt.course_code ||
-          "Unknown"
+    attempts.forEach((attempt) => {
+      const code =
+        attempt.course_code || "Unknown"
 
-        const title =
-          attempt.course_title ||
-          "Unknown Course"
+      const title =
+        attempt.course_title ||
+        "Unknown Course"
 
-        if (!grouped[code]) {
-          grouped[code] = {
-            course_code: code,
-            course_title: title,
-            attempts: 0,
-            totalPercentage: 0,
-            best: 0,
-          }
+      if (!grouped[code]) {
+        grouped[code] = {
+          course_code: code,
+          course_title: title,
+          attempts: 0,
+          totalScore: 0,
+          totalQuestions: 0,
+          best: 0,
+          totalTime: 0,
+          firstScore: null,
+          latestScore: null,
         }
+      }
 
-        grouped[code].attempts += 1
+      const course = grouped[code]
 
-        grouped[
-          code
-        ].totalPercentage += Number(
-          attempt.percentage || 0
-        )
+      const score = Number(
+        attempt.score || 0
+      )
 
-        grouped[code].best =
-          Math.max(
-            grouped[code].best,
-            Number(
-              attempt.percentage || 0
-            )
-          )
-      })
+      const questionCount = Number(
+        attempt.question_count || 0
+      )
 
-      return Object.values(grouped)
-        .map((course) => ({
+      const percentage = Number(
+        attempt.percentage || 0
+      )
+
+      const timeTaken = Number(
+        attempt.time_taken_seconds || 0
+      )
+
+      course.attempts += 1
+      course.totalScore += score
+      course.totalQuestions += questionCount
+      course.totalTime += timeTaken
+
+      course.best = Math.max(
+        course.best,
+        percentage
+      )
+
+      if (course.latestScore === null) {
+        course.latestScore = percentage
+      }
+
+      course.firstScore = percentage
+    })
+
+    return Object.values(grouped)
+      .map((course) => {
+        const average =
+          course.totalQuestions > 0
+            ? Math.round(
+                (course.totalScore /
+                  course.totalQuestions) *
+                  100
+              )
+            : 0
+
+        const improvement =
+          course.latestScore !== null &&
+          course.firstScore !== null
+            ? course.latestScore -
+              course.firstScore
+            : 0
+
+        const averageTime =
+          course.attempts > 0
+            ? Math.round(
+                course.totalTime /
+                  course.attempts
+              )
+            : 0
+
+        return {
           ...course,
-          average: Math.round(
-            course.totalPercentage /
-              course.attempts
-          ),
-        }))
+          average,
+          improvement,
+          averageTime,
+        }
+      })
+      .sort(
+        (a, b) =>
+          a.average - b.average
+      )
+  }, [attempts])
+
+  const weakestCourses = useMemo(
+    () =>
+      coursePerformance
+        .slice()
         .sort(
           (a, b) =>
             a.average - b.average
         )
-    }, [attempts])
+        .slice(0, 3),
+    [coursePerformance]
+  )
 
-  const weakestCourses =
-    coursePerformance.slice(0, 3)
+  const strongestCourses = useMemo(
+    () =>
+      coursePerformance
+        .slice()
+        .sort(
+          (a, b) =>
+            b.average - a.average
+        )
+        .slice(0, 3),
+    [coursePerformance]
+  )
 
-  const strongestCourses =
-    [...coursePerformance]
-      .sort(
-        (a, b) =>
-          b.average - a.average
-      )
-      .slice(0, 3)
+  const improvingCourses = useMemo(
+    () =>
+      coursePerformance
+        .filter(
+          (course) =>
+            course.improvement > 0
+        )
+        .sort(
+          (a, b) =>
+            b.improvement -
+            a.improvement
+        ),
+    [coursePerformance]
+  )
 
-  function getPerformanceLabel(
-    score
-  ) {
+  function formatTime(seconds) {
+    const totalSeconds = Number(
+      seconds || 0
+    )
+
+    if (totalSeconds <= 0) {
+      return "—"
+    }
+
+    const minutes = Math.floor(
+      totalSeconds / 60
+    )
+
+    const remainingSeconds =
+      totalSeconds % 60
+
+    if (minutes === 0) {
+      return `${remainingSeconds}s`
+    }
+
+    return `${minutes}m ${remainingSeconds}s`
+  }
+
+  function getPerformanceLabel(score) {
     if (score >= 80) {
       return "Excellent"
     }
@@ -308,8 +421,12 @@ function QuizPerformance() {
   }
 
   function getScoreColor(score) {
-    if (score >= 70) {
+    if (score >= 80) {
       return "text-green-600 dark:text-green-400"
+    }
+
+    if (score >= 70) {
+      return "text-blue-600 dark:text-blue-400"
     }
 
     if (score >= 50) {
@@ -320,8 +437,12 @@ function QuizPerformance() {
   }
 
   function getProgressColor(score) {
-    if (score >= 70) {
+    if (score >= 80) {
       return "bg-green-500"
+    }
+
+    if (score >= 70) {
+      return "bg-blue-500"
     }
 
     if (score >= 50) {
@@ -329,6 +450,20 @@ function QuizPerformance() {
     }
 
     return "bg-red-500"
+  }
+
+  function getImprovementText(value) {
+    if (value > 0) {
+      return `↑ ${value}% improvement`
+    }
+
+    if (value < 0) {
+      return `↓ ${Math.abs(
+        value
+      )}% from first attempt`
+    }
+
+    return "No change yet"
   }
 
   if (loading) {
@@ -422,7 +557,6 @@ function QuizPerformance() {
         {/* NO ATTEMPTS */}
 
         {attempts.length === 0 ? (
-
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow p-10 text-center">
 
             <div className="text-6xl mb-5">
@@ -434,7 +568,7 @@ function QuizPerformance() {
             </h2>
 
             <p className="mt-3 text-gray-500 dark:text-gray-400">
-              Complete some AI quizzes and your performance analysis will appear here.
+              Complete some quizzes and your performance analysis will appear here.
             </p>
 
             <button
@@ -449,14 +583,12 @@ function QuizPerformance() {
             </button>
 
           </div>
-
         ) : (
-
           <>
 
             {/* STATISTICS */}
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-5">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-7 gap-5">
 
               <StatCard
                 title="Quizzes"
@@ -500,31 +632,58 @@ function QuizPerformance() {
                 icon="🏆"
               />
 
-            </div>
+              <StatCard
+                title="Avg. Time"
+                value={formatTime(
+                  statistics.averageTime
+                )}
+                icon="⏱️"
+              />
 
+            </div>
 
             {/* OVERALL PERFORMANCE */}
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow p-6 mt-8">
 
-              <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-400">
-                Overall Performance
-              </h2>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                <div>
+                  <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-400">
+                    Overall Performance
+                  </h2>
+
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    Your performance across all completed quizzes.
+                  </p>
+                </div>
+
+                <div
+                  className={`text-lg font-bold ${getScoreColor(
+                    statistics.accuracy
+                  )}`}
+                >
+                  {getPerformanceLabel(
+                    statistics.accuracy
+                  )}
+                </div>
+
+              </div>
 
               <div className="mt-6">
 
                 <div className="flex justify-between mb-2">
 
                   <span className="font-semibold">
-                    Average Quiz Score
+                    Overall Accuracy
                   </span>
 
                   <span
                     className={`font-bold ${getScoreColor(
-                      statistics.average
+                      statistics.accuracy
                     )}`}
                   >
-                    {statistics.average}%
+                    {statistics.accuracy}%
                   </span>
 
                 </div>
@@ -533,11 +692,11 @@ function QuizPerformance() {
 
                   <div
                     className={`h-full ${getProgressColor(
-                      statistics.average
+                      statistics.accuracy
                     )} transition-all duration-500`}
                     style={{
                       width: `${Math.min(
-                        statistics.average,
+                        statistics.accuracy,
                         100
                       )}%`,
                     }}
@@ -545,48 +704,52 @@ function QuizPerformance() {
 
                 </div>
 
-                <p
-                  className={`mt-4 font-semibold ${getScoreColor(
-                    statistics.average
-                  )}`}
-                >
-                  {getPerformanceLabel(
-                    statistics.average
-                  )}
-                </p>
-
               </div>
 
             </div>
-
 
             {/* AI PERFORMANCE ANALYSIS */}
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow p-6 mt-8">
 
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
-                <div className="text-4xl">
-                  🤖
+                <div className="flex items-center gap-4">
+
+                  <div className="text-4xl">
+                    🤖
+                  </div>
+
+                  <div>
+                    <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-400">
+                      AI Performance Analysis
+                    </h2>
+
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Personalized feedback based on your actual quiz performance.
+                    </p>
+                  </div>
+
                 </div>
 
-                <div>
-                  <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-400">
-                    AI Performance Analysis
-                  </h2>
-
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Personalized feedback based on your actual quiz answers.
-                  </p>
-                </div>
+                {!analyzing && (
+                  <button
+                    onClick={() =>
+                      generateAIAnalysis(
+                        attempts
+                      )
+                    }
+                    className="bg-blue-900 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg font-semibold"
+                  >
+                    🔄 Refresh Analysis
+                  </button>
+                )}
 
               </div>
-
 
               {/* AI LOADING */}
 
               {analyzing && (
-
                 <div className="mt-8 text-center py-8">
 
                   <div className="text-5xl mb-4">
@@ -602,15 +765,12 @@ function QuizPerformance() {
                   </p>
 
                 </div>
-
               )}
-
 
               {/* AI ERROR */}
 
               {analysisError &&
                 !analyzing && (
-
                   <div className="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-5">
 
                     <p className="font-semibold text-red-700 dark:text-red-400">
@@ -633,21 +793,17 @@ function QuizPerformance() {
                     </button>
 
                   </div>
-
                 )}
-
 
               {/* AI RESULTS */}
 
               {aiAnalysis &&
                 !analyzing && (
-
                   <div className="mt-8 space-y-6">
 
                     {/* SUMMARY */}
 
                     {aiAnalysis.summary && (
-
                       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5">
 
                         <h3 className="font-bold text-blue-900 dark:text-blue-400 text-lg">
@@ -661,14 +817,11 @@ function QuizPerformance() {
                         </p>
 
                       </div>
-
                     )}
 
-
-                    {/* ASSESSMENT */}
+                    {/* OVERALL ASSESSMENT */}
 
                     {aiAnalysis.overallAssessment && (
-
                       <div>
 
                         <h3 className="text-lg font-bold">
@@ -682,192 +835,194 @@ function QuizPerformance() {
                         </p>
 
                       </div>
-
                     )}
-
 
                     {/* STRENGTHS */}
 
-                    {aiAnalysis.strengths?.length > 0 && (
+                    {Array.isArray(
+                      aiAnalysis.strengths
+                    ) &&
+                      aiAnalysis.strengths
+                        .length > 0 && (
+                        <div>
 
-                      <div>
+                          <h3 className="text-lg font-bold text-green-600 dark:text-green-400">
+                            💪 Your Strengths
+                          </h3>
 
-                        <h3 className="text-lg font-bold text-green-600 dark:text-green-400">
-                          💪 Your Strengths
-                        </h3>
+                          <div className="mt-3 space-y-2">
 
-                        <div className="mt-3 space-y-2">
+                            {aiAnalysis.strengths.map(
+                              (
+                                strength,
+                                index
+                              ) => (
+                                <div
+                                  key={
+                                    index
+                                  }
+                                  className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4"
+                                >
+                                  ✅{" "}
+                                  {strength}
+                                </div>
+                              )
+                            )}
 
-                          {aiAnalysis.strengths.map(
-                            (
-                              strength,
-                              index
-                            ) => (
-
-                              <div
-                                key={index}
-                                className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4"
-                              >
-                                ✅{" "}
-                                {strength}
-                              </div>
-
-                            )
-                          )}
+                          </div>
 
                         </div>
-
-                      </div>
-
-                    )}
-
+                      )}
 
                     {/* WEAK AREAS */}
 
-                    {aiAnalysis.weakAreas?.length > 0 && (
+                    {Array.isArray(
+                      aiAnalysis.weakAreas
+                    ) &&
+                      aiAnalysis.weakAreas
+                        .length > 0 && (
+                        <div>
 
-                      <div>
+                          <h3 className="text-lg font-bold text-red-600 dark:text-red-400">
+                            🎯 Areas to Improve
+                          </h3>
 
-                        <h3 className="text-lg font-bold text-red-600 dark:text-red-400">
-                          🎯 Areas to Improve
-                        </h3>
+                          <div className="mt-4 space-y-4">
 
-                        <div className="mt-4 space-y-4">
-
-                          {aiAnalysis.weakAreas.map(
-                            (
-                              area,
-                              index
-                            ) => (
-
-                              <div
-                                key={index}
-                                className="border border-red-200 dark:border-red-800 rounded-xl p-5"
-                              >
-
-                                <h4 className="font-bold text-lg">
-                                  {
-                                    area.topic
+                            {aiAnalysis.weakAreas.map(
+                              (
+                                area,
+                                index
+                              ) => (
+                                <div
+                                  key={
+                                    index
                                   }
-                                </h4>
+                                  className="border border-red-200 dark:border-red-800 rounded-xl p-5"
+                                >
 
-                                <p className="mt-2 text-gray-600 dark:text-gray-300">
-                                  <strong>
-                                    Why:
-                                  </strong>{" "}
-                                  {
-                                    area.reason
-                                  }
-                                </p>
+                                  <h4 className="font-bold text-lg">
+                                    {
+                                      area.topic
+                                    }
+                                  </h4>
 
-                                <p className="mt-2 text-gray-600 dark:text-gray-300">
-                                  <strong>
-                                    Recommendation:
-                                  </strong>{" "}
-                                  {
-                                    area.recommendation
-                                  }
-                                </p>
+                                  <p className="mt-2 text-gray-600 dark:text-gray-300">
+                                    <strong>
+                                      Why:
+                                    </strong>{" "}
+                                    {
+                                      area.reason
+                                    }
+                                  </p>
 
-                              </div>
+                                  <p className="mt-2 text-gray-600 dark:text-gray-300">
+                                    <strong>
+                                      Recommendation:
+                                    </strong>{" "}
+                                    {
+                                      area.recommendation
+                                    }
+                                  </p>
 
-                            )
-                          )}
+                                </div>
+                              )
+                            )}
+
+                          </div>
 
                         </div>
-
-                      </div>
-
-                    )}
-
+                      )}
 
                     {/* COMMON MISTAKES */}
 
-                    {aiAnalysis.commonMistakes?.length > 0 && (
+                    {Array.isArray(
+                      aiAnalysis.commonMistakes
+                    ) &&
+                      aiAnalysis
+                        .commonMistakes
+                        .length > 0 && (
+                        <div>
 
-                      <div>
+                          <h3 className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                            ⚠️ Common Mistakes
+                          </h3>
 
-                        <h3 className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
-                          ⚠️ Common Mistakes
-                        </h3>
+                          <div className="mt-3 space-y-2">
 
-                        <div className="mt-3 space-y-2">
+                            {aiAnalysis.commonMistakes.map(
+                              (
+                                mistake,
+                                index
+                              ) => (
+                                <div
+                                  key={
+                                    index
+                                  }
+                                  className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4"
+                                >
+                                  •{" "}
+                                  {mistake}
+                                </div>
+                              )
+                            )}
 
-                          {aiAnalysis.commonMistakes.map(
-                            (
-                              mistake,
-                              index
-                            ) => (
-
-                              <div
-                                key={index}
-                                className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4"
-                              >
-                                •{" "}
-                                {mistake}
-                              </div>
-
-                            )
-                          )}
+                          </div>
 
                         </div>
-
-                      </div>
-
-                    )}
-
+                      )}
 
                     {/* STUDY PLAN */}
 
-                    {aiAnalysis.studyPlan?.length > 0 && (
+                    {Array.isArray(
+                      aiAnalysis.studyPlan
+                    ) &&
+                      aiAnalysis.studyPlan
+                        .length > 0 && (
+                        <div>
 
-                      <div>
+                          <h3 className="text-lg font-bold text-blue-900 dark:text-blue-400">
+                            📚 Recommended Study Plan
+                          </h3>
 
-                        <h3 className="text-lg font-bold text-blue-900 dark:text-blue-400">
-                          📚 Recommended Study Plan
-                        </h3>
+                          <div className="mt-4 space-y-3">
 
-                        <div className="mt-4 space-y-3">
-
-                          {aiAnalysis.studyPlan.map(
-                            (
-                              item,
-                              index
-                            ) => (
-
-                              <div
-                                key={index}
-                                className="border border-gray-200 dark:border-slate-700 rounded-xl p-4"
-                              >
-
-                                <span className="font-bold">
-                                  {
-                                    item.priority
+                            {aiAnalysis.studyPlan.map(
+                              (
+                                item,
+                                index
+                              ) => (
+                                <div
+                                  key={
+                                    index
                                   }
-                                </span>
+                                  className="border border-gray-200 dark:border-slate-700 rounded-xl p-4"
+                                >
 
-                                <p className="mt-1 text-gray-600 dark:text-gray-300">
-                                  {
-                                    item.action
-                                  }
-                                </p>
+                                  <span className="font-bold">
+                                    {
+                                      item.priority
+                                    }
+                                  </span>
 
-                              </div>
+                                  <p className="mt-1 text-gray-600 dark:text-gray-300">
+                                    {
+                                      item.action
+                                    }
+                                  </p>
 
-                            )
-                          )}
+                                </div>
+                              )
+                            )}
+
+                          </div>
 
                         </div>
-
-                      </div>
-
-                    )}
-
+                      )}
 
                     {/* RECOMMENDED FOCUS */}
 
                     {aiAnalysis.recommendedFocus && (
-
                       <div className="bg-blue-900 dark:bg-blue-800 text-white rounded-xl p-6">
 
                         <h3 className="text-xl font-bold">
@@ -881,15 +1036,75 @@ function QuizPerformance() {
                         </p>
 
                       </div>
-
                     )}
 
                   </div>
-
                 )}
 
             </div>
 
+            {/* IMPROVING COURSES */}
+
+            {improvingCourses.length > 0 && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-6 mt-8">
+
+                <div className="flex items-center gap-3">
+
+                  <span className="text-3xl">
+                    🚀
+                  </span>
+
+                  <div>
+
+                    <h2 className="text-2xl font-bold text-green-700 dark:text-green-400">
+                      You're Improving
+                    </h2>
+
+                    <p className="text-green-700/70 dark:text-green-300/70">
+                      These courses show improvement between your first and latest attempts.
+                    </p>
+
+                  </div>
+
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4 mt-5">
+
+                  {improvingCourses
+                    .slice(0, 3)
+                    .map((course) => (
+                      <div
+                        key={
+                          course.course_code
+                        }
+                        className="bg-white dark:bg-slate-900 rounded-xl p-4"
+                      >
+
+                        <p className="font-bold text-blue-900 dark:text-blue-400">
+                          {
+                            course.course_code
+                          }
+                        </p>
+
+                        <p className="text-sm mt-1">
+                          {
+                            course.course_title
+                          }
+                        </p>
+
+                        <p className="text-green-600 dark:text-green-400 font-bold mt-3">
+                          {getImprovementText(
+                            course.improvement
+                          )}
+                        </p>
+
+                      </div>
+                    ))}
+
+                </div>
+
+              </div>
+            )}
 
             {/* WEAK AREAS */}
 
@@ -919,7 +1134,6 @@ function QuizPerformance() {
 
                 {weakestCourses.map(
                   (course) => (
-
                     <div
                       key={
                         course.course_code
@@ -969,7 +1183,7 @@ function QuizPerformance() {
                           </p>
 
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Average
+                            Accuracy
                           </p>
 
                         </div>
@@ -1004,14 +1218,12 @@ function QuizPerformance() {
                       </button>
 
                     </div>
-
                   )
                 )}
 
               </div>
 
             </div>
-
 
             {/* STRONG AREAS */}
 
@@ -1041,7 +1253,6 @@ function QuizPerformance() {
 
                 {strongestCourses.map(
                   (course) => (
-
                     <div
                       key={
                         course.course_code
@@ -1068,18 +1279,38 @@ function QuizPerformance() {
                       </p>
 
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Average performance
+                        Accuracy
                       </p>
 
-                    </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                        {
+                          course.attempts
+                        }{" "}
+                        attempt
+                        {course.attempts ===
+                        1
+                          ? ""
+                          : "s"}
+                      </p>
 
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/course-quiz/${course.course_code}`
+                          )
+                        }
+                        className="mt-4 text-blue-700 dark:text-blue-400 font-semibold hover:underline"
+                      >
+                        Practice →
+                      </button>
+
+                    </div>
                   )
                 )}
 
               </div>
 
             </div>
-
 
             {/* RECENT ATTEMPTS */}
 
@@ -1117,7 +1348,6 @@ function QuizPerformance() {
                 {attempts
                   .slice(0, 5)
                   .map((attempt) => (
-
                     <div
                       key={attempt.id}
                       className="border border-gray-200 dark:border-slate-700 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
@@ -1137,11 +1367,27 @@ function QuizPerformance() {
                           }
                         </p>
 
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {new Date(
-                            attempt.created_at
-                          ).toLocaleString()}
-                        </p>
+                        <div className="flex flex-wrap gap-3 text-sm text-gray-500 dark:text-gray-400 mt-1">
+
+                          <span>
+                            {new Date(
+                              attempt.created_at
+                            ).toLocaleString()}
+                          </span>
+
+                          {Number(
+                            attempt.time_taken_seconds ||
+                              0
+                          ) > 0 && (
+                            <span>
+                              ⏱️{" "}
+                              {formatTime(
+                                attempt.time_taken_seconds
+                              )}
+                            </span>
+                          )}
+
+                        </div>
 
                       </div>
 
@@ -1152,7 +1398,8 @@ function QuizPerformance() {
                           <p
                             className={`text-2xl font-bold ${getScoreColor(
                               Number(
-                                attempt.percentage
+                                attempt.percentage ||
+                                  0
                               )
                             )}`}
                           >
@@ -1187,13 +1434,11 @@ function QuizPerformance() {
                       </div>
 
                     </div>
-
                   ))}
 
               </div>
 
             </div>
-
 
             {/* RECOMMENDATION */}
 
@@ -1205,7 +1450,7 @@ function QuizPerformance() {
                   🤖
                 </div>
 
-                <div>
+                <div className="flex-1">
 
                   <h2 className="text-2xl font-bold">
                     QS Nexus Recommendation
@@ -1213,35 +1458,46 @@ function QuizPerformance() {
 
                   {weakestCourses.length >
                   0 ? (
+                    <>
+                      <p className="mt-3 text-blue-100">
 
-                    <p className="mt-3 text-blue-100">
+                        Your current area needing the most attention is{" "}
 
-                      Your current area needing the most attention is{" "}
+                        <strong>
+                          {
+                            weakestCourses[0]
+                              .course_code
+                          }
+                        </strong>
 
-                      <strong>
+                        {" "}(
                         {
                           weakestCourses[0]
-                            .course_code
+                            .average
+                        }%
+                        average).
+
+                      </p>
+
+                      <p className="mt-2 text-blue-100">
+                        Review your course materials and take another practice quiz to improve your understanding.
+                      </p>
+
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/course-quiz/${weakestCourses[0].course_code}`
+                          )
                         }
-                      </strong>
-
-                      {" "}(
-                      {
-                        weakestCourses[0]
-                          .average
-                      }%
-                      average).
-
-                      Consider reviewing your course materials and taking another practice quiz to improve your understanding.
-
-                    </p>
-
+                        className="mt-5 bg-white text-blue-900 hover:bg-blue-50 px-5 py-3 rounded-lg font-bold"
+                      >
+                        Practice Now →
+                      </button>
+                    </>
                   ) : (
-
                     <p className="mt-3 text-blue-100">
                       Keep completing quizzes to build enough performance data for personalized recommendations.
                     </p>
-
                   )}
 
                 </div>
@@ -1251,11 +1507,9 @@ function QuizPerformance() {
             </div>
 
           </>
-
         )}
 
       </div>
-
     </div>
   )
 }

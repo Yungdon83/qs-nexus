@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Timetable from "./pages/Timetable"
 import ProtectedRoute from "./components/ProtectedRoute"
@@ -10,6 +9,9 @@ import QuizHistory from "./pages/QuizHistory"
 import QuizLeaderboard from "./pages/QuizLeaderboard"
 import QuizReview from "./pages/QuizReview"
 import QuizPerformance from "./pages/QuizPerformance"
+import CourseProgress from "./pages/CourseProgress"
+import Assignments from "./pages/Assignments"
+
 
 // Public Pages
 import Home from "./pages/Home"
@@ -31,6 +33,12 @@ import ManageStudents from "./pages/ManageStudents"
 import ManageLecturers from "./pages/ManageLecturers"
 import CreateLecturer from "./pages/CreateLecturer"
 import ManageCourses from "./pages/ManageCourses"
+import EditCourse from "./pages/EditCourse"
+import ManageTimetable from "./pages/ManageTimetable"
+import EditTimetable from "./pages/EditTimetable"
+import AdminResources from "./pages/AdminResources"
+import AdminAnnouncements from "./pages/AdminAnnouncements"
+import AdminEvents from "./pages/AdminEvents"
 
 // Student
 import StudentSubmissions from "./pages/StudentSubmissions"
@@ -87,19 +95,16 @@ function App() {
         />
 
         <Route
-  path="/quiz-history"
-  element={<QuizHistory />}
-/>
-
-<Route
-  path="/quiz-leaderboard"
-  element={<QuizLeaderboard />}
-/>
-
-        <Route
           path="/course/:courseCode"
           element={<CourseDetails />}
         />
+        <Route
+  path="/assignments"
+  element={<Assignments />}
+/>
+
+
+
 
         <Route
           path="/resources"
@@ -112,49 +117,90 @@ function App() {
         />
 
         <Route
-  path="/timetable"
-  element={<Timetable />}
-/>
-<Route
-  path="/gpa-calculator"
-  element={
-    <ProtectedRoute role="student">
-      <GPACalculator />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/course-quiz/:courseCode"
-  element={
-    <ProtectedRoute role="student">
-      <CourseQuiz />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/quiz-review/:attemptId"
-  element={<QuizReview />}
-/>
-<Route
-  path="/quiz-performance"
-  element={<QuizPerformance />}
-/>
-
-<Route
-  path="/study-assistant"
-  element={
-    <ProtectedRoute role="student">
-      <StudyAssistant />
-    </ProtectedRoute>
-  }
-/>
-
-
-
-        <Route
           path="/register"
           element={<Register />}
         />
+
+        <Route
+          path="/timetable"
+          element={<Timetable />}
+        />
+
+
+        {/* ================= STUDENT ACADEMIC TOOLS ================= */}
+
+        <Route
+          path="/gpa-calculator"
+          element={
+            <ProtectedRoute role="student">
+              <GPACalculator />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/course-quiz/:courseCode"
+          element={
+            <ProtectedRoute role="student">
+              <CourseQuiz />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz-history"
+          element={
+            <ProtectedRoute role="student">
+              <QuizHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz-leaderboard"
+          element={
+            <ProtectedRoute role="student">
+              <QuizLeaderboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz-review/:attemptId"
+          element={
+            <ProtectedRoute role="student">
+              <QuizReview />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quiz-performance"
+          element={
+            <ProtectedRoute role="student">
+              <QuizPerformance />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/study-assistant"
+          element={
+            <ProtectedRoute role="student">
+              <StudyAssistant />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/course-progress"
+          element={
+            <ProtectedRoute role="student">
+              <CourseProgress />
+            </ProtectedRoute>
+          }
+        />
+
 
         {/* ================= ADMIN ================= */}
 
@@ -203,6 +249,61 @@ function App() {
           }
         />
 
+        <Route
+          path="/edit-course/:id"
+          element={
+            <ProtectedRoute role="admin">
+              <EditCourse />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/manage-timetable"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageTimetable />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/edit-timetable/:id"
+          element={
+            <ProtectedRoute role="admin">
+              <EditTimetable />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin-resources"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminResources />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin-announcements"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminAnnouncements />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin-events"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminEvents />
+            </ProtectedRoute>
+          }
+        />
+
+
         {/* ================= STUDENT ================= */}
 
         <Route
@@ -250,6 +351,7 @@ function App() {
           }
         />
 
+
         {/* ================= LECTURER ================= */}
 
         <Route
@@ -261,7 +363,8 @@ function App() {
           }
         />
 
-        {/* Resources */}
+
+        {/* ================= RESOURCES ================= */}
 
         <Route
           path="/upload-resource"
@@ -281,7 +384,8 @@ function App() {
           }
         />
 
-        {/* Announcements */}
+
+        {/* ================= ANNOUNCEMENTS ================= */}
 
         <Route
           path="/create-announcement"
@@ -310,7 +414,8 @@ function App() {
           }
         />
 
-        {/* Events */}
+
+        {/* ================= EVENTS ================= */}
 
         <Route
           path="/create-event"
@@ -333,13 +438,14 @@ function App() {
         <Route
           path="/edit-event/:id"
           element={
-            <ProtectedRoute role="lecturer">
+            <ProtectedRoute role={["lecturer", "admin"]}>
               <EditEvent />
             </ProtectedRoute>
           }
         />
 
-        {/* Assignments */}
+
+        {/* ================= ASSIGNMENTS ================= */}
 
         <Route
           path="/create-assignment"
@@ -374,4 +480,3 @@ function App() {
 }
 
 export default App
-

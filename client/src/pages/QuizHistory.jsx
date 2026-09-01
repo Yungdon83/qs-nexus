@@ -28,23 +28,20 @@ function QuizHistory() {
       }
 
       if (!user) {
-        setError("You must be logged in to view your quiz history.")
-        setLoading(false)
+        setError("You must be logged in.")
         return
       }
 
-      const {
-        data,
-        error: attemptsError,
-      } = await supabase
-        .from("quiz_attempts")
-        .select(
-          "id, course_code, course_title, question_count, score, percentage, time_taken_seconds, created_at"
-        )
-        .eq("user_id", user.id)
-        .order("created_at", {
-          ascending: false,
-        })
+      const { data, error: attemptsError } =
+        await supabase
+          .from("quiz_attempts")
+          .select(
+            "id, course_code, course_title, question_count, score, percentage, time_taken_seconds, created_at"
+          )
+          .eq("user_id", user.id)
+          .order("created_at", {
+            ascending: false,
+          })
 
       if (attemptsError) {
         throw attemptsError
@@ -64,21 +61,43 @@ function QuizHistory() {
     }
   }
 
-  function formatDate(dateString) {
-    if (!dateString) {
-      return "Unknown date"
+  function getScoreColor(score) {
+    if (score >= 70) {
+      return "text-green-600 dark:text-green-400"
     }
 
-    return new Date(dateString).toLocaleString()
+    if (score >= 50) {
+      return "text-yellow-600 dark:text-yellow-400"
+    }
+
+    return "text-red-600 dark:text-red-400"
+  }
+
+  function getBadge(score) {
+    if (score >= 80) {
+      return "Excellent"
+    }
+
+    if (score >= 70) {
+      return "Good"
+    }
+
+    if (score >= 50) {
+      return "Needs Improvement"
+    }
+
+    return "Needs Attention"
   }
 
   function formatTime(seconds) {
-    if (!seconds || seconds <= 0) {
-      return "Not recorded"
-    }
+    const totalSeconds = Number(seconds || 0)
 
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
+    const minutes = Math.floor(
+      totalSeconds / 60
+    )
+
+    const remainingSeconds =
+      totalSeconds % 60
 
     if (minutes === 0) {
       return `${remainingSeconds}s`
@@ -87,24 +106,10 @@ function QuizHistory() {
     return `${minutes}m ${remainingSeconds}s`
   }
 
-  function getScoreColor(percentage) {
-    if (percentage >= 70) {
-      return "text-green-600 dark:text-green-400"
-    }
-
-    if (percentage >= 50) {
-      return "text-yellow-600 dark:text-yellow-400"
-    }
-
-    return "text-red-600 dark:text-red-400"
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-slate-950 flex items-center justify-center">
-
         <div className="text-center">
-
           <div className="text-6xl mb-5">
             📚
           </div>
@@ -114,11 +119,36 @@ function QuizHistory() {
           </h1>
 
           <p className="mt-2 text-gray-500 dark:text-gray-400">
-            Retrieving your previous quiz attempts.
+            Retrieving your previous attempts.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-8 max-w-lg w-full text-center">
+          <div className="text-5xl mb-5">
+            ⚠️
+          </div>
+
+          <h1 className="text-2xl font-bold text-red-600">
+            Quiz History Error
+          </h1>
+
+          <p className="mt-4 text-gray-600 dark:text-gray-300 break-words">
+            {error}
           </p>
 
+          <button
+            onClick={loadHistory}
+            className="mt-6 bg-blue-900 hover:bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold"
+          >
+            Try Again
+          </button>
         </div>
-
       </div>
     )
   }
@@ -129,8 +159,7 @@ function QuizHistory() {
       {/* HEADER */}
 
       <div className="bg-blue-900 dark:bg-slate-900 text-white shadow-lg">
-
-        <div className="max-w-6xl mx-auto px-6 py-6">
+        <div className="max-w-7xl mx-auto px-6 py-6">
 
           <button
             onClick={() =>
@@ -144,57 +173,52 @@ function QuizHistory() {
           <div className="flex items-center gap-4">
 
             <div className="text-5xl">
-              📊
+              📚
             </div>
 
             <div>
-
               <h1 className="text-3xl font-bold">
                 Quiz History
               </h1>
 
               <p className="text-blue-100 mt-1">
-                Review your previous AI quiz attempts.
+                View and review all your previous quiz attempts.
               </p>
-
             </div>
 
           </div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto p-6">
+
+        {/* TOP ACTIONS */}
+
+        <div className="flex flex-wrap gap-3 mb-6">
+
+          <button
+            onClick={() =>
+              navigate("/quiz-performance")
+            }
+            className="bg-blue-900 hover:bg-blue-800 text-white px-5 py-3 rounded-lg font-semibold"
+          >
+            📈 View Performance
+          </button>
+
+          <button
+            onClick={() =>
+              navigate("/student-dashboard")
+            }
+            className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-5 py-3 rounded-lg font-semibold"
+          >
+            🏠 Dashboard
+          </button>
 
         </div>
 
-      </div>
-
-      <div className="max-w-6xl mx-auto p-6">
-
-        {/* ERROR */}
-
-        {error && (
-
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-xl p-6 mb-6">
-
-            <h2 className="text-xl font-bold text-red-700 dark:text-red-400">
-              Unable to load quiz history
-            </h2>
-
-            <p className="mt-2 text-red-600 dark:text-red-300 break-words">
-              {error}
-            </p>
-
-            <button
-              onClick={loadHistory}
-              className="mt-5 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-semibold"
-            >
-              Try Again
-            </button>
-
-          </div>
-
-        )}
-
         {/* EMPTY */}
 
-        {!error && attempts.length === 0 && (
+        {attempts.length === 0 ? (
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow p-10 text-center">
 
@@ -207,7 +231,7 @@ function QuizHistory() {
             </h2>
 
             <p className="mt-3 text-gray-500 dark:text-gray-400">
-              Complete an AI course quiz and your result will appear here.
+              Complete your first quiz and your results will appear here.
             </p>
 
             <button
@@ -216,93 +240,148 @@ function QuizHistory() {
               }
               className="mt-6 bg-blue-900 hover:bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold"
             >
-              Go to Dashboard
+              Find a Quiz
             </button>
 
           </div>
 
-        )}
-
-        {/* HISTORY */}
-
-        {!error && attempts.length > 0 && (
+        ) : (
 
           <div className="space-y-5">
 
-            {attempts.map((attempt) => (
+            {attempts.map((attempt, index) => {
 
-              <div
-                key={attempt.id}
-                className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow p-6"
-              >
+              const percentage =
+                Number(
+                  attempt.percentage || 0
+                )
 
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+              return (
+                <div
+                  key={attempt.id}
+                  className="bg-white dark:bg-slate-900 rounded-2xl shadow p-6"
+                >
 
-                  {/* COURSE */}
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-                  <div className="flex-1">
+                    {/* INFO */}
 
-                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
-                      {attempt.course_code}
-                    </p>
+                    <div className="flex items-start gap-4">
 
-                    <h2 className="text-xl font-bold mt-1">
-                      {attempt.course_title}
-                    </h2>
+                      <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-xl font-bold text-blue-900 dark:text-blue-400">
+                        {index + 1}
+                      </div>
 
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                      📅 {formatDate(attempt.created_at)}
-                    </p>
+                      <div>
+
+                        <p className="font-bold text-blue-900 dark:text-blue-400">
+                          {attempt.course_code}
+                        </p>
+
+                        <h2 className="text-xl font-bold mt-1">
+                          {attempt.course_title}
+                        </h2>
+
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                          {new Date(
+                            attempt.created_at
+                          ).toLocaleString()}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    {/* SCORE */}
+
+                    <div className="flex flex-wrap items-center gap-6">
+
+                      <div className="text-center">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Score
+                        </p>
+
+                        <p className="text-xl font-bold">
+                          {attempt.score}/
+                          {attempt.question_count}
+                        </p>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Percentage
+                        </p>
+
+                        <p
+                          className={`text-3xl font-bold ${getScoreColor(
+                            percentage
+                          )}`}
+                        >
+                          {percentage}%
+                        </p>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Time
+                        </p>
+
+                        <p className="font-semibold">
+                          {formatTime(
+                            attempt.time_taken_seconds
+                          )}
+                        </p>
+                      </div>
+
+                    </div>
 
                   </div>
 
-                  {/* SCORE */}
+                  {/* PROGRESS */}
 
-                  <div className="text-center">
+                  <div className="mt-6">
 
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Score
-                    </p>
+                    <div className="flex justify-between text-sm mb-2">
 
-                    <p
-                      className={`text-3xl font-bold ${getScoreColor(
-                        Number(attempt.percentage)
-                      )}`}
-                    >
-                      {attempt.score}/
-                      {attempt.question_count}
-                    </p>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Performance
+                      </span>
 
-                    <p
-                      className={`font-semibold ${getScoreColor(
-                        Number(attempt.percentage)
-                      )}`}
-                    >
-                      {attempt.percentage}%
-                    </p>
+                      <span
+                        className={`font-semibold ${getScoreColor(
+                          percentage
+                        )}`}
+                      >
+                        {getBadge(percentage)}
+                      </span>
 
-                  </div>
+                    </div>
 
-                  {/* TIME */}
+                    <div className="w-full h-3 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
 
-                  <div className="text-center">
+                      <div
+                        className={`h-full ${
+                          percentage >= 70
+                            ? "bg-green-500"
+                            : percentage >= 50
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                        }`}
+                        style={{
+                          width: `${Math.min(
+                            percentage,
+                            100
+                          )}%`,
+                        }}
+                      />
 
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Time Taken
-                    </p>
-
-                    <p className="font-bold text-lg">
-                      ⏱️{" "}
-                      {formatTime(
-                        attempt.time_taken_seconds
-                      )}
-                    </p>
+                    </div>
 
                   </div>
 
-                  {/* REVIEW */}
+                  {/* ACTIONS */}
 
-                  <div>
+                  <div className="mt-5 flex flex-wrap gap-3">
 
                     <button
                       onClick={() =>
@@ -310,24 +389,22 @@ function QuizHistory() {
                           `/quiz-review/${attempt.id}`
                         )
                       }
-                      className="bg-blue-900 hover:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-5 py-3 rounded-lg font-semibold"
+                      className="bg-blue-900 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg font-semibold"
                     >
-                      🔍 Review Attempt
+                      🔍 Review Quiz
                     </button>
 
                   </div>
 
                 </div>
-
-              </div>
-
-            ))}
+              )
+            })}
 
           </div>
 
         )}
 
-      </div>
+      </main>
 
     </div>
   )
