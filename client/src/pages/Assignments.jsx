@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 
 function Assignments() {
@@ -59,10 +59,9 @@ function Assignments() {
         data,
         error: assignmentError,
       } = await supabase
-        .from("resources")
+        .from("assignments")
         .select("*")
         .eq("level", profileData.level)
-        .eq("department", profileData.department)
         .order("created_at", {
           ascending: false,
         })
@@ -71,14 +70,7 @@ function Assignments() {
         throw assignmentError
       }
 
-      const onlyAssignments = (data || []).filter(
-        (resource) =>
-          String(resource.resources_type || "")
-            .toLowerCase()
-            .includes("assignment")
-      )
-
-      setAssignments(onlyAssignments)
+      setAssignments(data || [])
     } catch (err) {
       console.error("ASSIGNMENTS ERROR:", err)
 
@@ -457,22 +449,12 @@ function AssignmentCard({
           </p>
         </div>
 
-        {/* ACTION */}
-
-        {assignment.file_url ? (
-          <a
-            href={assignment.file_url}
-            target="_blank"
-            rel="noreferrer"
-            className="block mt-6 text-center bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold transition"
-          >
-            📄 Open Assignment
-          </a>
-        ) : (
-          <div className="mt-6 text-center bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400 py-3 rounded-xl font-semibold">
-            📭 Assignment File Unavailable
-          </div>
-        )}
+        <Link
+          to={`/submit-assignment/${assignment.id}`}
+          className="block mt-6 text-center bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold transition"
+        >
+          📄 View Assignment
+        </Link>
       </div>
     </div>
   )

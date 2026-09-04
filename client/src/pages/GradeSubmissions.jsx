@@ -54,7 +54,7 @@ function GradeSubmissions() {
     if (studentIds.length > 0) {
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, level, department")
+        .select("id, full_name, level, department")
         .in("id", studentIds);
 
       if (profileError) {
@@ -300,9 +300,6 @@ function SubmissionCard({
           <p className="font-bold text-gray-900 mt-1">
             {student?.full_name || "Unknown student"}
           </p>
-          {student?.email && (
-            <p className="text-sm text-gray-500 mt-1">{student.email}</p>
-          )}
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4">

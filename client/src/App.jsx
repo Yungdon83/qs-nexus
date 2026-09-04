@@ -59,6 +59,7 @@ import EditAnnouncement from "./pages/EditAnnouncement"
 import CreateEvent from "./pages/CreateEvent"
 import ManageEvents from "./pages/ManageEvents"
 import EditEvent from "./pages/EditEvent"
+import Events from "./pages/Events"
 
 // Assignments
 import CreateAssignment from "./pages/CreateAssignment"
@@ -91,16 +92,28 @@ function App() {
 
         <Route
           path="/courses/:level"
-          element={<LevelCourses />}
+          element={
+            <ProtectedRoute role={["student", "lecturer", "admin"]}>
+              <LevelCourses />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/course/:courseCode"
-          element={<CourseDetails />}
+          element={
+            <ProtectedRoute role={["student", "lecturer", "admin"]}>
+              <CourseDetails />
+            </ProtectedRoute>
+          }
         />
         <Route
   path="/assignments"
-  element={<Assignments />}
+          element={
+            <ProtectedRoute role="student">
+              <Assignments />
+            </ProtectedRoute>
+          }
 />
 
 
@@ -108,7 +121,11 @@ function App() {
 
         <Route
           path="/resources"
-          element={<Resources />}
+          element={
+            <ProtectedRoute role={["student", "lecturer", "admin"]}>
+              <Resources />
+            </ProtectedRoute>
+          }
         />
 
         <Route
@@ -123,7 +140,11 @@ function App() {
 
         <Route
           path="/timetable"
-          element={<Timetable />}
+          element={
+            <ProtectedRoute role={["student", "lecturer", "admin"]}>
+              <Timetable />
+            </ProtectedRoute>
+          }
         />
 
 
@@ -137,7 +158,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute role={["student", "lecturer", "admin"]}>
+              <Events />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/course-quiz/:courseCode"
           element={

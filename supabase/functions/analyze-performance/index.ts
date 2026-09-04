@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -7,6 +9,51 @@ const corsHeaders = {
 
 type QuizQuestion = {
   question?: string
+    const authHeader = req.headers.get("Authorization")
+    const token = authHeader?.replace(/^Bearer\s+/i, "")
+
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Supabase environment variables are missing.")
+    }
+
+    const supabaseClient = createClient(
+      supabaseUrl,
+      supabaseAnonKey
+    )
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser(token)
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    }
+
   options?: string[]
   answer?: string
   explanation?: string

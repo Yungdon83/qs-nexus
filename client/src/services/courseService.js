@@ -102,6 +102,29 @@ const courseService = {
 
 
 
+  async getCourseByCode(courseCode) {
+
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .eq("course_code", courseCode)
+      .maybeSingle()
+
+
+    if (error) {
+
+      throw error
+
+    }
+
+
+    return data
+
+  },
+
+
+
+
 
   async updateCourse(id, updates) {
 

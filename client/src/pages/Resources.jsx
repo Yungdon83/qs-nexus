@@ -77,7 +77,7 @@ function Resources() {
   const assignments = useMemo(() => {
     return resources.filter((resource) => {
       const type = String(
-        resource.resources_type || ""
+        resource.resource_type || ""
       ).toLowerCase()
 
       return type.includes("assignment")
@@ -87,7 +87,7 @@ function Resources() {
   const learningResources = useMemo(() => {
     return resources.filter((resource) => {
       const type = String(
-        resource.resources_type || ""
+        resource.resource_type || ""
       ).toLowerCase()
 
       return !type.includes("assignment")
@@ -119,7 +119,7 @@ function Resources() {
           String(resource.course_code || "")
             .toLowerCase()
             .includes(searchText) ||
-          String(resource.resources_type || "")
+          String(resource.resource_type || "")
             .toLowerCase()
             .includes(searchText)
         )
@@ -150,7 +150,7 @@ function Resources() {
 
   function isAssignment(resource) {
     return String(
-      resource.resources_type || ""
+      resource.resource_type || ""
     )
       .toLowerCase()
       .includes("assignment")
@@ -161,7 +161,7 @@ function Resources() {
       return "Assignment"
     }
 
-    return resource.resources_type ||
+    return resource.resource_type ||
       "Learning Resource"
   }
 

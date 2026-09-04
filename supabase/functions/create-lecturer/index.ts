@@ -147,9 +147,8 @@ serve(async (req) => {
         .insert({
           id: createdUser.user.id,
           full_name,
-          email,
           role: "lecturer",
-          department: department || null,
+          department: department || "Quantity Surveying",
         })
 
     if (insertProfileError) {
