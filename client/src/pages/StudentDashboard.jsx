@@ -94,11 +94,12 @@ function StudentDashboard() {
           }),
 
         supabase
-          .from("assignments")
-          .select("*")
-          .order("created_at", {
-            ascending: false,
-          }),
+          .from("announcements")
+.select("*")
+.in("audience", ["students", "all"])
+.order("created_at", {
+  ascending: false,
+}),
 
         supabase
           .from("announcements")

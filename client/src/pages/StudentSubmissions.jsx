@@ -1,648 +1,239 @@
-import { useEffect, useMemo, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { supabase } from "../lib/supabase"
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 function StudentSubmissions() {
-  const navigate = useNavigate()
-
-  const [submissions, setSubmissions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadSubmissions()
-  }, [])
+    loadSubmissions();
+  }, []);
 
-  async function loadSubmissions() {
-    setLoading(true)
-    setError("")
-
+  const loadSubmissions = async () => {
     try {
+      setLoading(true);
+
       const {
         data: { user },
         error: userError,
-      } = await supabase.auth.getUser()
+      } = await supabase.auth.getUser();
 
-      if (userError) {
-        throw userError
+      if (userError || !user) {
+        console.error("USER ERROR:", userError);
+        setLoading(false);
+        return;
       }
 
-      if (!user) {
-        setError("You must be logged in.")
-        return
-      }
-
-      // ==========================================
-      // LOAD STUDENT SUBMISSIONS
-      // ==========================================
-
-      const {
-        data,
-        error: submissionError,
-      } = await supabase
+      const { data: submissionData, error: submissionError } = await supabase
         .from("submissions")
         .select("*")
         .eq("student_id", user.id)
-        .order("submitted_at", {
-          ascending: false,
-        })
+        .order("submitted_at", { ascending: false });
 
       if (submissionError) {
-        throw submissionError
+        console.error("SUBMISSION ERROR:", submissionError);
+        setLoading(false);
+        return;
       }
 
-      const submissionData = data || []
-
-      // ==========================================
-      // LOAD ASSIGNMENTS
-      // ==========================================
-
-      if (submissionData.length === 0) {
-        setSubmissions([])
-        return
+      if (!submissionData || submissionData.length === 0) {
+        setSubmissions([]);
+        setLoading(false);
+        return;
       }
 
-      const assignmentIds =
-        submissionData.map(
-          (submission) =>
-            submission.assignment_id
-        )
+      const assignmentIds = submissionData.map(
+        (submission) => submission.assignment_id
+      );
 
-      const {
-        data: assignmentData,
-        error: assignmentError,
-      } = await supabase
+      const { data: assignmentData, error: assignmentError } = await supabase
         .from("assignments")
-        .select(
-          "id, title, description, course_code, level, due_date"
-        )
-        .in("id", assignmentIds)
+        .select("*")
+        .in("id", assignmentIds);
 
       if (assignmentError) {
-        throw assignmentError
+        console.error("ASSIGNMENT ERROR:", assignmentError);
+        setLoading(false);
+        return;
       }
 
-      // ==========================================
-      // COMBINE SUBMISSION + ASSIGNMENT
-      // ==========================================
+      const combinedSubmissions = submissionData.map((submission) => ({
+        ...submission,
+        assignment:
+          assignmentData?.find(
+            (assignment) => assignment.id === submission.assignment_id
+          ) || null,
+      }));
 
-      const assignmentMap = {}
-
-      ;(assignmentData || []).forEach(
-        (assignment) => {
-          assignmentMap[assignment.id] =
-            assignment
-        }
-      )
-
-      const combinedData =
-        submissionData.map(
-          (submission) => ({
-            ...submission,
-            assignment:
-              assignmentMap[
-                submission.assignment_id
-              ] || null,
-          })
-        )
-
-      setSubmissions(combinedData)
-    } catch (err) {
-      console.error(
-        "STUDENT SUBMISSIONS ERROR:",
-        err
-      )
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load your submissions."
-      )
+      setSubmissions(combinedSubmissions);
+    } catch (error) {
+      console.error("LOAD SUBMISSIONS ERROR:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  // ==========================================
-  // DATE FORMAT
-  // ==========================================
+  const getStoragePath = (fileValue) => {
+    if (!fileValue) return null;
 
-  function formatDate(date) {
-    if (!date) {
-      return "Not available"
+    if (!fileValue.startsWith("http")) {
+      return decodeURIComponent(fileValue);
     }
 
-    const formattedDate =
-      new Date(date)
+    try {
+      const url = new URL(fileValue);
+      const marker = "/storage/v1/object/public/assignments/";
 
-    if (
-      Number.isNaN(
-        formattedDate.getTime()
-      )
-    ) {
-      return "Invalid date"
-    }
+      const index = url.pathname.indexOf(marker);
 
-    return formattedDate.toLocaleString()
-  }
-
-  // ==========================================
-  // GRADE STATUS
-  // ==========================================
-
-  function getGradeStatus(submission) {
-    if (
-      submission.grade !== null &&
-      submission.grade !== undefined &&
-      submission.grade !== ""
-    ) {
-      return {
-        text: "Graded",
-        className:
-          "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+      if (index === -1) {
+        return null;
       }
+
+      return decodeURIComponent(url.pathname.substring(index + marker.length));
+    } catch (error) {
+      console.error("FILE URL PARSE ERROR:", error);
+      return null;
     }
+  };
 
-    return {
-      text: "Pending Review",
-      className:
-        "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  const openSubmittedFile = async (fileValue) => {
+    try {
+      const filePath = getStoragePath(fileValue);
+
+      console.log("ORIGINAL FILE URL:", fileValue);
+      console.log("STORAGE FILE PATH:", filePath);
+
+      if (!filePath) {
+        alert("The submitted file path is invalid.");
+        return;
+      }
+
+      const { data, error } = await supabase.storage
+        .from("assignments")
+        .createSignedUrl(filePath, 600);
+
+      if (error) {
+        console.error("SIGNED URL ERROR:", error);
+        alert("The submitted file could not be found in the assignments storage bucket.");
+        return;
+      }
+
+      if (!data?.signedUrl) {
+        alert("Could not generate a link for the submitted file.");
+        return;
+      }
+
+      window.open(data.signedUrl, "_blank");
+    } catch (error) {
+      console.error("OPEN FILE ERROR:", error);
+      alert("Something went wrong while opening the submitted file.");
     }
-  }
-
-  // ==========================================
-  // STATISTICS
-  // ==========================================
-
-  const statistics = useMemo(() => {
-    const total = submissions.length
-
-    const graded =
-      submissions.filter(
-        (submission) =>
-          submission.grade !== null &&
-          submission.grade !== undefined &&
-          submission.grade !== ""
-      ).length
-
-    const pending = total - graded
-
-    return {
-      total,
-      graded,
-      pending,
-    }
-  }, [submissions])
-
-  // ==========================================
-  // LOADING
-  // ==========================================
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-slate-950 flex items-center justify-center">
-
-        <div className="text-center">
-
-          <div className="text-5xl mb-4">
-            📤
-          </div>
-
-          <h1 className="text-2xl font-bold text-blue-900 dark:text-blue-400">
-            Loading Your Submissions...
-          </h1>
-
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Please wait.
-          </p>
-
-        </div>
-
+      <div className="flex min-h-[300px] items-center justify-center">
+        <p className="text-gray-600">Loading submissions...</p>
       </div>
-    )
-  }
-
-  // ==========================================
-  // ERROR
-  // ==========================================
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-100 dark:bg-slate-950 flex items-center justify-center p-6">
-
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-8 max-w-lg w-full text-center">
-
-          <div className="text-5xl mb-4">
-            ⚠️
-          </div>
-
-          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400">
-            Unable to Load Submissions
-          </h1>
-
-          <p className="mt-4 text-gray-600 dark:text-gray-300 break-words">
-            {error}
-          </p>
-
-          <div className="flex justify-center gap-3 mt-6">
-
-            <button
-              onClick={loadSubmissions}
-              className="bg-blue-900 hover:bg-blue-800 text-white px-5 py-3 rounded-lg font-semibold"
-            >
-              Try Again
-            </button>
-
-            <button
-              onClick={() =>
-                navigate(
-                  "/student-dashboard"
-                )
-              }
-              className="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 px-5 py-3 rounded-lg font-semibold"
-            >
-              Dashboard
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-slate-950 text-gray-800 dark:text-gray-100">
-
-      {/* ========================================
-          HEADER
-      ======================================== */}
-
-      <div className="bg-blue-900 dark:bg-slate-900 text-white shadow-lg">
-
-        <div className="max-w-7xl mx-auto px-6 py-6">
-
-          <button
-            onClick={() =>
-              navigate(
-                "/student-dashboard"
-              )
-            }
-            className="text-blue-100 hover:text-white mb-5"
-          >
-            ← Back to Dashboard
-          </button>
-
-          <div className="flex items-center gap-4">
-
-            <div className="text-5xl">
-              📤
-            </div>
-
-            <div>
-
-              <h1 className="text-3xl font-bold">
-                My Submissions
-              </h1>
-
-              <p className="text-blue-100 mt-1">
-                View your submitted assignments and lecturer feedback.
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <div className="max-w-7xl mx-auto p-6">
-
-        {/* ========================================
-            STATISTICS
-        ======================================== */}
-
-        <div className="grid sm:grid-cols-3 gap-5">
-
-          <StatCard
-            title="Total Submissions"
-            value={statistics.total}
-            icon="📤"
-          />
-
-          <StatCard
-            title="Graded"
-            value={statistics.graded}
-            icon="✅"
-          />
-
-          <StatCard
-            title="Pending Review"
-            value={statistics.pending}
-            icon="⏳"
-          />
-
-        </div>
-
-        {/* ========================================
-            EMPTY STATE
-        ======================================== */}
-
-        {submissions.length === 0 ? (
-
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow p-10 text-center mt-8">
-
-            <div className="text-6xl mb-5">
-              📭
-            </div>
-
-            <h2 className="text-2xl font-bold">
-              No Submissions Yet
-            </h2>
-
-            <p className="mt-3 text-gray-500 dark:text-gray-400">
-              You haven't submitted any assignments yet.
-            </p>
-
-            <Link
-              to="/student-assignments"
-              className="inline-block mt-6 bg-blue-900 hover:bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold"
-            >
-              View Assignments
-            </Link>
-
-          </div>
-
-        ) : (
-
-          /* ========================================
-             SUBMISSIONS
-          ======================================== */
-
-          <div className="mt-8 space-y-6">
-
-            {submissions.map(
-              (submission) => {
-
-                const assignment =
-                  submission.assignment
-
-                const status =
-                  getGradeStatus(
-                    submission
-                  )
-
-                return (
-
-                  <div
-                    key={submission.id}
-                    className="bg-white dark:bg-slate-900 rounded-2xl shadow p-6"
-                  >
-
-                    {/* TOP */}
-
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-
-                      <div>
-
-                        <p className="text-sm font-bold text-blue-700 dark:text-blue-400">
-                          {assignment?.course_code ||
-                            "Course"}
-                        </p>
-
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1">
-                          {assignment?.title ||
-                            "Assignment"}
-                        </h2>
-
-                        {assignment?.description && (
-
-                          <p className="mt-3 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                            {
-                              assignment.description
-                            }
-                          </p>
-
-                        )}
-
-                      </div>
-
-                      <span
-                        className={`inline-flex w-fit px-3 py-1 rounded-full text-xs font-bold ${status.className}`}
-                      >
-                        {status.text}
-                      </span>
-
-                    </div>
-
-                    {/* DETAILS */}
-
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-
-                      <Detail
-                        label="Submitted"
-                        value={formatDate(
-                          submission.submitted_at
-                        )}
-                      />
-
-                      <Detail
-                        label="Due Date"
-                        value={formatDate(
-                          assignment?.due_date
-                        )}
-                      />
-
-                      <Detail
-                        label="Grade"
-                        value={
-                          submission.grade !==
-                            null &&
-                          submission.grade !==
-                            undefined &&
-                          submission.grade !==
-                            ""
-                            ? submission.grade
-                            : "Not graded"
-                        }
-                      />
-
-                      <Detail
-                        label="Assignment ID"
-                        value={
-                          submission.assignment_id
-                        }
-                      />
-
-                    </div>
-
-                    {/* FEEDBACK */}
-
-                    <div className="mt-6">
-
-                      <h3 className="font-bold text-lg">
-                        💬 Lecturer Feedback
-                      </h3>
-
-                      {submission.feedback ? (
-
-                        <div className="mt-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-5">
-
-                          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                            {
-                              submission.feedback
-                            }
-                          </p>
-
-                        </div>
-
-                      ) : (
-
-                        <div className="mt-3 bg-gray-50 dark:bg-slate-800 rounded-xl p-5">
-
-                          <p className="text-gray-500 dark:text-gray-400">
-                            No feedback has been provided yet.
-                          </p>
-
-                        </div>
-
-                      )}
-
-                    </div>
-
-                    {/* FILE */}
-
-                    {submission.file_url && (
-
-                      <div className="mt-6">
-
-                        <button
-  type="button"
-  onClick={async () => {
-    const { data, error } = await supabase.storage
-      .from("assignments")
-      .createSignedUrl(submission.file_url, 600)
-
-    if (error) {
-      console.error("File URL error:", error)
-      alert(error.message)
-      return
-    }
-
-    if (!data?.signedUrl) {
-      alert("Unable to open submitted file.")
-      return
-    }
-
-    window.open(data.signedUrl, "_blank")
-  }}
-  className="inline-flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white px-5 py-3 rounded-lg font-semibold"
->
-  📎 Open Submitted File
-</button>
-
-                      </div>
-
-                    )}
-
-                    {/* ACTIONS */}
-
-                    <div className="mt-6 pt-5 border-t border-gray-200 dark:border-slate-700 flex flex-wrap gap-3">
-
-                      {assignment?.id && (
-
-                        <Link
-                          to={
-                            "/submit-assignment/" +
-                            assignment.id
-                          }
-                          className="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 px-5 py-3 rounded-lg font-semibold"
-                        >
-                          View Assignment
-                        </Link>
-
-                      )}
-
-                      <Link
-                        to="/student-assignments"
-                        className="bg-blue-900 hover:bg-blue-800 text-white px-5 py-3 rounded-lg font-semibold"
-                      >
-                        All Assignments
-                      </Link>
-
-                    </div>
-
-                  </div>
-
-                )
-              }
-            )}
-
-          </div>
-
-        )}
-
-      </div>
-
-    </div>
-  )
-}
-
-// ==========================================
-// STAT CARD
-// ==========================================
-
-function StatCard({
-  title,
-  value,
-  icon,
-}) {
-  return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow p-5">
-
-      <div className="flex items-center justify-between">
-
-        <p className="text-gray-500 dark:text-gray-400">
-          {title}
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">My Submissions</h1>
+        <p className="mt-1 text-gray-600">
+          View your submitted assignments and grades.
         </p>
-
-        <span className="text-2xl">
-          {icon}
-        </span>
-
       </div>
 
-      <p className="text-3xl font-bold text-blue-900 dark:text-blue-400 mt-3">
-        {value}
-      </p>
+      {submissions.length === 0 ? (
+        <div className="rounded-lg border border-gray-200 bg-white p-6 text-center shadow-sm">
+          <p className="text-gray-600">You have not submitted any assignments yet.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {submissions.map((submission) => (
+            <div
+              key={submission.id}
+              className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
+            >
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {submission.assignment?.title || "Assignment"}
+                  </h2>
 
+                  {submission.assignment?.course_code && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      {submission.assignment.course_code}
+                    </p>
+                  )}
+                </div>
+
+                <div className="text-sm">
+                  <span className="font-medium text-gray-700">Status: </span>
+                  <span
+                    className={
+                      submission.grade !== null
+                        ? "font-semibold text-green-600"
+                        : "font-semibold text-yellow-600"
+                    }
+                  >
+                    {submission.grade !== null ? "Graded" : "Pending"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Submitted
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {submission.submitted_at
+                      ? new Date(submission.submitted_at).toLocaleString()
+                      : "Not available"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Grade</p>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {submission.grade !== null
+                      ? `${submission.grade}`
+                      : "Not graded yet"}
+                  </p>
+                </div>
+              </div>
+
+              {submission.feedback && (
+                <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                  <p className="text-sm font-medium text-gray-700">
+                    Lecturer Feedback
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-gray-600">
+                    {submission.feedback}
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={() => openSubmittedFile(submission.file_url)}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                >
+                  Open Submitted File
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
-// ==========================================
-// DETAIL
-// ==========================================
-
-function Detail({
-  label,
-  value,
-}) {
-  return (
-    <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-
-      <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-        {label}
-      </p>
-
-      <p className="font-semibold mt-1 break-words">
-        {value}
-      </p>
-
-    </div>
-  )
-}
-
-export default StudentSubmissions
+export default StudentSubmissions;
