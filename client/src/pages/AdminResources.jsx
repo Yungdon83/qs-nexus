@@ -1,44 +1,38 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
-
-
+import { openResourceFile } from "../utils/resourceStorage"
+ 
 function AdminResources() {
-
   const [resources, setResources] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
 
-
   useEffect(() => {
-
     getResources()
-
   }, [])
 
-
+  async function openResource(resource) {
+    try {
+      await openResourceFile(resource.file_url)
+    } catch (openError) {
+      console.error("RESOURCE FILE ERROR:", openError)
+      alert("This file is currently unavailable. Please try again later.")
+    }
+  }
 
   async function getResources() {
-
-
     const { data, error } = await supabase
       .from("resources")
       .select("*")
       .order("created_at", { ascending: false })
 
-
-
     if (error) {
-
       alert(error.message)
       return
-
     }
 
-
     setResources(data || [])
-
     setLoading(false)
-
   }
 
 

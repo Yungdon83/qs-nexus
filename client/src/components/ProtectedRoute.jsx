@@ -1,4 +1,3 @@
-
 import { Navigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
@@ -6,64 +5,77 @@ import { supabase } from "../lib/supabase"
 function ProtectedRoute({ children, role }) {
   const [loading, setLoading] = useState(true)
   const [allowed, setAllowed] = useState(false)
+  const [verificationRequired, setVerificationRequired] = useState(false)
+  const [verificationEmail, setVerificationEmail] = useState("")
 
   useEffect(() => {
-    checkUser()
-  }, [role])
+    let mounted = true
 
-  async function checkUser() {
-    setLoading(true)
-    setAllowed(false)
+    async function checkUser() {
+      try {
+        setLoading(true)
+        setAllowed(false)
+        setVerificationRequired(false)
+        setVerificationEmail("")
 
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
 
-      if (userError) {
-        console.error("User error:", userError)
-        setLoading(false)
-        return
+        if (sessionError) {
+          console.error("Session error:", sessionError)
+          return
+        }
+
+        if (!session?.user) {
+          return
+        }
+
+        if (!session.user.email_confirmed_at && !session.user.confirmed_at) {
+          if (mounted) {
+            setVerificationRequired(true)
+            setVerificationEmail(session.user.email || "")
+          }
+          return
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .maybeSingle()
+
+        if (profileError) {
+          console.error("Profile error:", profileError)
+          return
+        }
+
+        const allowedRoles = Array.isArray(role) ? role : [role]
+
+        if (allowedRoles.includes(profile?.role) && mounted) {
+          setAllowed(true)
+        }
+      } catch (error) {
+        console.error("Protected route error:", error)
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
       }
-
-      if (!user) {
-        setLoading(false)
-        return
-      }
-
-      const {
-        data: profile,
-        error: profileError,
-      } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle()
-
-      if (profileError) {
-        console.error("Profile error:", profileError)
-        setLoading(false)
-        return
-      }
-
-      const allowedRoles = Array.isArray(role) ? role : [role]
-
-      if (allowedRoles.includes(profile?.role)) {
-        setAllowed(true)
-      }
-
-    } catch (error) {
-      console.error("Protected route error:", error)
     }
 
-    setLoading(false)
-  }
+    checkUser()
+
+    return () => {
+      mounted = false
+    }
+  }, [role])
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="p-10 font-bold text-blue-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950">
+        <p className="font-bold text-blue-900 dark:text-blue-400">
           Checking access...
         </p>
       </div>
@@ -71,6 +83,9 @@ function ProtectedRoute({ children, role }) {
   }
 
   if (!allowed) {
+    if (verificationRequired) {
+      return <Navigate to="/verify-email" state={{ email: verificationEmail }} replace />
+    }
     return <Navigate to="/login" replace />
   }
 
@@ -78,4 +93,3 @@ function ProtectedRoute({ children, role }) {
 }
 
 export default ProtectedRoute
-

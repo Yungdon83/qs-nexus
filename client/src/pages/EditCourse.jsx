@@ -104,7 +104,13 @@ function EditCourse() {
 
     const { error } = await supabase
       .from("courses")
-      .update(form)
+      .update({
+        course_code: form.course_code,
+        course_title: form.course_title,
+        description: form.description,
+        level: form.level,
+        unit: form.unit,
+      })
       .eq("id", id)
 
 

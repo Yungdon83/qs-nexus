@@ -1,5 +1,11 @@
 
-import { createContext, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
 import { supabase } from "../lib/supabase"
 
 const AuthContext = createContext(null)
@@ -8,6 +14,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const profileRequestRef = useRef(0)
 
   useEffect(() => {
     let mounted = true
@@ -49,20 +56,30 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         if (!mounted) return
 
         const currentUser = session?.user || null
 
         setUser(currentUser)
 
-        if (currentUser) {
-          await getProfile(currentUser.id)
-        } else {
+        if (!currentUser) {
+          profileRequestRef.current += 1
           setProfile(null)
+          setLoading(false)
+          return
         }
 
-        setLoading(false)
+        setProfile(null)
+        setLoading(true)
+
+        window.setTimeout(() => {
+          if (!mounted) return
+
+          void getProfile(currentUser.id).finally(() => {
+            if (mounted) setLoading(false)
+          })
+        }, 0)
       }
     )
 
@@ -73,6 +90,9 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function getProfile(userId) {
+    const requestId = profileRequestRef.current + 1
+    profileRequestRef.current = requestId
+
     if (!userId) {
       setProfile(null)
       return
@@ -86,11 +106,15 @@ export function AuthProvider({ children }) {
 
     if (error) {
       console.error("Profile error:", error)
-      setProfile(null)
+      if (profileRequestRef.current === requestId) {
+        setProfile(null)
+      }
       return
     }
 
-    setProfile(data || null)
+    if (profileRequestRef.current === requestId) {
+      setProfile(data || null)
+    }
   }
 
   async function logout() {

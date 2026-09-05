@@ -44,6 +44,13 @@ Deno.serve(async (req) => {
     })
   }
 
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    })
+  }
+
   try {
     const authHeader = req.headers.get("Authorization")
     const token = authHeader?.replace(/^Bearer\s+/i, "")
@@ -308,7 +315,6 @@ Now answer the student's question according to the selected study mode.
       return new Response(
         JSON.stringify({
           error: "Gemini request failed",
-          details: responseText,
         }),
         {
           status: response.status,
@@ -330,7 +336,6 @@ Now answer the student's question according to the selected study mode.
       return new Response(
         JSON.stringify({
           error: "Invalid Gemini response",
-          details: responseText,
         }),
         {
           status: 500,
@@ -361,7 +366,6 @@ Now answer the student's question according to the selected study mode.
       return new Response(
         JSON.stringify({
           error: "Gemini returned no answer",
-          details: geminiData,
         }),
         {
           status: 500,
@@ -396,11 +400,6 @@ Now answer the student's question according to the selected study mode.
     return new Response(
       JSON.stringify({
         error: "Unable to process question",
-
-        details:
-          error instanceof Error
-            ? error.message
-            : String(error),
       }),
       {
         status: 500,

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import courseService from "../services/courseService";
+import { openResourceFile } from "../utils/resourceStorage";
 
 function CourseDetails() {
   const { courseCode } = useParams();
@@ -11,6 +12,15 @@ function CourseDetails() {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  async function handleOpenResource(fileUrl) {
+    try {
+      await openResourceFile(fileUrl);
+    } catch (openError) {
+      console.error("COURSE RESOURCE ERROR:", openError);
+      window.alert("This file is currently unavailable. Please try again later.");
+    }
+  }
 
   useEffect(() => {
     async function loadCourse() {
@@ -119,13 +129,20 @@ function CourseDetails() {
             📚 Lecture Materials
           </h3>
 
+          <Link
+            to={`/library?course=${encodeURIComponent(course.course_code)}`}
+            className="inline-block mb-4 bg-yellow-500 text-white px-4 py-2 rounded-lg"
+          >
+            View Library Materials
+          </Link>
+
           <ul className="space-y-2">
             {resources.length > 0 ? resources.map((resource) => (
               <li key={resource.id}>
                 {resource.file_url ? (
-                  <a href={resource.file_url} target="_blank" rel="noreferrer" className="text-blue-700 hover:underline">
+                  <button type="button" onClick={() => handleOpenResource(resource.file_url)} className="text-blue-700 hover:underline">
                     {resource.title}
-                  </a>
+                  </button>
                 ) : resource.title}
               </li>
             )) : <li>No lecture materials available.</li>}
@@ -156,7 +173,7 @@ function CourseDetails() {
           <ul className="space-y-2">
             {resources.filter((resource) => resource.resource_type?.toLowerCase().includes("past")).map((resource) => (
               <li key={resource.id}>
-                {resource.file_url ? <a href={resource.file_url} target="_blank" rel="noreferrer" className="text-blue-700 hover:underline">{resource.title}</a> : resource.title}
+                {resource.file_url ? <button type="button" onClick={() => handleOpenResource(resource.file_url)} className="text-blue-700 hover:underline">{resource.title}</button> : resource.title}
               </li>
             ))}
             {!resources.some((resource) => resource.resource_type?.toLowerCase().includes("past")) && <li>No past questions available.</li>}

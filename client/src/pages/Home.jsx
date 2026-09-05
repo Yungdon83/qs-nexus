@@ -1,19 +1,19 @@
 function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen qs-page">
 
       {/* Hero Section */}
-      <section className="bg-blue-900 text-white min-h-[80vh] flex items-center">
+      <section className="relative overflow-hidden bg-blue-900 text-white min-h-[80vh] flex items-center">
 
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-center">
 
-          <div>
+          <div className="relative z-10 py-16 md:py-20">
 
             <p className="text-yellow-400 font-semibold mb-4">
               UNIVERSITY OF IBADAN
             </p>
 
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+            <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight">
               Department of
               <span className="text-yellow-400">
                 {" "}Quantity Surveying
@@ -28,11 +28,11 @@ function Home() {
 
             <div className="mt-8 flex gap-4">
 
-              <button className="bg-yellow-400 text-blue-900 px-6 py-3 rounded-xl font-semibold">
+              <button className="qs-button bg-yellow-400 text-blue-900 px-6 py-3 font-semibold">
                 Student Portal
               </button>
 
-              <button className="border border-white px-6 py-3 rounded-xl hover:bg-white hover:text-blue-900">
+              <button className="qs-button border border-white px-6 py-3 hover:bg-white hover:text-blue-900">
                 Explore Courses
               </button>
 
@@ -41,7 +41,7 @@ function Home() {
           </div>
 
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-10">
+          <div className="relative z-10 bg-white/10 backdrop-blur-lg rounded-3xl p-6 md:p-10 border border-white/15 shadow-2xl">
 
             <div className="grid grid-cols-2 gap-6">
 
@@ -52,7 +52,7 @@ function Home() {
                 ["5", "Levels"]
               ].map(([number, text]) => (
 
-                <div key={text} className="bg-white/10 p-6 rounded-xl">
+                <div key={text} className="bg-white/10 p-6 rounded-xl border border-white/10 transition hover:bg-white/15 hover:-translate-y-1">
 
                   <h2 className="text-3xl font-bold text-yellow-400">
                     {number}
@@ -85,7 +85,7 @@ function Home() {
           </h2>
 
 
-          <div className="grid md:grid-cols-4 gap-6 mt-10">
+          <div className="grid md:grid-cols-4 gap-6 mt-10 qs-stagger">
 
             {[
               "Course Materials",
@@ -96,7 +96,7 @@ function Home() {
 
               <div
                 key={item}
-                className="bg-white shadow-lg rounded-2xl p-6 hover:-translate-y-2 transition"
+                className="qs-card p-6"
               >
 
                 <h3 className="font-semibold text-lg">
@@ -122,7 +122,7 @@ function Home() {
 
       {/* Announcements */}
 
-      <section className="py-20 bg-gray-100 px-6">
+      <section className="py-20 bg-slate-100/80 dark:bg-slate-900/60 px-6">
 
         <div className="max-w-7xl mx-auto">
 
@@ -131,7 +131,7 @@ function Home() {
           </h2>
 
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 qs-stagger">
 
             {[
               "First Semester Lecture Schedule",
@@ -139,7 +139,7 @@ function Home() {
               "New Learning Resources"
             ].map((item)=>(
 
-              <div key={item} className="bg-white rounded-2xl shadow p-6">
+              <div key={item} className="qs-card p-6">
 
                 <p className="text-yellow-500 font-semibold">
                   Department
@@ -177,7 +177,7 @@ function Home() {
           </h2>
 
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 qs-stagger">
 
             {[
               ["Department Seminar", "Academic seminar organised by lecturers."],
@@ -187,7 +187,7 @@ function Home() {
 
               <div
                 key={title}
-                className="border rounded-2xl p-6 shadow-sm hover:shadow-lg transition"
+                className="qs-card p-6"
               >
 
                 <h3 className="text-xl font-bold">
@@ -222,7 +222,7 @@ function Home() {
           </h2>
 
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 qs-stagger">
 
             {[
               "Lecture Slides",
@@ -230,7 +230,7 @@ function Home() {
               "Course Handbooks"
             ].map((resource)=>(
 
-              <div key={resource} className="bg-white/10 rounded-2xl p-6">
+              <div key={resource} className="bg-white/10 border border-white/10 rounded-2xl p-6 transition hover:bg-white/15 hover:-translate-y-1">
 
                 <h3 className="text-xl font-bold">
                   {resource}

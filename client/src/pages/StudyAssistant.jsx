@@ -74,7 +74,12 @@ function StudyAssistant() {
         return
       }
 
-      setCourses(data || [])
+      setCourses(
+        (data || []).map((course) => ({
+          ...course,
+          course_title: course.course_title ?? "",
+        }))
+      )
 
       if (data?.length > 0) {
         setSelectedCourse(String(data[0].id))

@@ -17,9 +17,11 @@ import Assignments from "./pages/Assignments"
 import Home from "./pages/Home"
 import About from "./pages/About"
 import Courses from "./pages/Courses"
+import Library from "./pages/Library"
 import Resources from "./pages/Resources"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
+import VerifyEmail from "./pages/VerifyEmail"
 import LevelCourses from "./pages/LevelCourses"
 import CourseDetails from "./pages/CourseDetails"
 
@@ -91,6 +93,15 @@ function App() {
         />
 
         <Route
+          path="/library"
+          element={
+            <ProtectedRoute role={["student", "lecturer", "admin"]}>
+              <Library />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/courses/:level"
           element={
             <ProtectedRoute role={["student", "lecturer", "admin"]}>
@@ -136,6 +147,11 @@ function App() {
         <Route
           path="/register"
           element={<Register />}
+        />
+
+        <Route
+          path="/verify-email"
+          element={<VerifyEmail />}
         />
 
         <Route
@@ -397,7 +413,7 @@ function App() {
         <Route
           path="/upload-resource"
           element={
-            <ProtectedRoute role="lecturer">
+            <ProtectedRoute role={["lecturer", "admin"]}>
               <UploadResource />
             </ProtectedRoute>
           }

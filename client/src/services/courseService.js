@@ -1,5 +1,17 @@
 import { supabase } from "../lib/supabase"
 
+function normalizeCourse(course) {
+  if (!course) return course
+
+  return {
+    ...course,
+    course_title: course.course_title ?? "",
+  }
+}
+
+function normalizeCourses(courses) {
+  return (courses || []).map(normalizeCourse)
+}
 
 const courseService = {
 
@@ -20,7 +32,7 @@ const courseService = {
     }
 
 
-    return data
+    return normalizeCourse(data)
 
   },
 
@@ -45,7 +57,7 @@ const courseService = {
     }
 
 
-    return data
+    return normalizeCourses(data)
 
   },
 
@@ -71,7 +83,7 @@ const courseService = {
     }
 
 
-    return data
+    return normalizeCourses(data)
 
   },
 
@@ -95,7 +107,7 @@ const courseService = {
     }
 
 
-    return data
+    return normalizeCourse(data)
 
   },
 
@@ -118,7 +130,7 @@ const courseService = {
     }
 
 
-    return data
+    return normalizeCourse(data)
 
   },
 
@@ -143,7 +155,7 @@ const courseService = {
     }
 
 
-    return data
+    return normalizeCourse(data)
 
   },
 

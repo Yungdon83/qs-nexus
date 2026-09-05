@@ -174,7 +174,7 @@ function AdminDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen qs-page bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
       <style>
         {`
           @keyframes fadeIn {
@@ -305,7 +305,7 @@ function AdminDashboard() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 qs-stagger">
               {[1, 2, 3, 4, 5, 6].map((item) => (
                 <div
                   key={item}

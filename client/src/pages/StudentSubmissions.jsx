@@ -82,15 +82,20 @@ function StudentSubmissions() {
 
     try {
       const url = new URL(fileValue);
-      const marker = "/storage/v1/object/public/assignments/";
+      const markers = [
+        "/storage/v1/object/public/assignments/",
+        "/storage/v1/object/sign/assignments/",
+      ];
 
-      const index = url.pathname.indexOf(marker);
+      for (const marker of markers) {
+        const index = url.pathname.indexOf(marker);
 
-      if (index === -1) {
-        return null;
+        if (index !== -1) {
+          return decodeURIComponent(url.pathname.substring(index + marker.length));
+        }
       }
 
-      return decodeURIComponent(url.pathname.substring(index + marker.length));
+      return null;
     } catch (error) {
       console.error("FILE URL PARSE ERROR:", error);
       return null;

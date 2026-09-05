@@ -4,6 +4,16 @@ import { supabase } from "../lib/supabase"
 
 function Timetable() {
 
+  const dayOrder = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ]
+
   const [timetable, setTimetable] = useState([])
   const [loading, setLoading] = useState(true)
   const [level, setLevel] = useState("")
@@ -48,13 +58,22 @@ function Timetable() {
 
 
 
-  const filteredTimetable = level
-
+  const filteredTimetable = (level
     ? timetable.filter(
-        (item)=> item.level === level
+        (item) => item.level === level
       )
-
     : timetable
+  ).sort((firstItem, secondItem) => {
+    const dayDifference =
+      dayOrder.indexOf(firstItem.day) -
+      dayOrder.indexOf(secondItem.day)
+
+    if (dayDifference !== 0) return dayDifference
+
+    return (firstItem.start_time || "").localeCompare(
+      secondItem.start_time || ""
+    )
+  })
 
 
 

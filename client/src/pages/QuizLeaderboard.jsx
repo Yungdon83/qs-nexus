@@ -23,9 +23,9 @@ function QuizLeaderboard() {
         data: attempts,
         error: attemptsError,
       } = await supabase
-        .from("quiz_attempts")
+        .from("quiz_leaderboard")
         .select(
-          "id, user_id, course_code, course_title, score, question_count, percentage, created_at"
+          "id, user_id, course_code, course_title, score, question_count, percentage, created_at, full_name, level"
         )
         .order("percentage", {
           ascending: false,
@@ -48,57 +48,16 @@ function QuizLeaderboard() {
         return
       }
 
-      // Get unique user IDs
-      const userIds = [
-        ...new Set(
-          attempts
-            .map((attempt) => attempt.user_id)
-            .filter(Boolean)
-        ),
-      ]
-
-      // Get profiles separately
-      let profiles = []
-
-      if (userIds.length > 0) {
-        const {
-          data: profileData,
-          error: profileError,
-        } = await supabase
-          .from("profiles")
-          .select("id, full_name, level")
-          .in("id", userIds)
-
-        if (profileError) {
-          console.error(
-            "PROFILE ERROR:",
-            profileError
-          )
-        } else {
-          profiles = profileData || []
-        }
-      }
-
-      // Create profile lookup
-      const profileMap = {}
-
-      profiles.forEach((profile) => {
-        profileMap[profile.id] = profile
-      })
-
       // Combine attempts with profiles
       const combinedAttempts =
         attempts.map((attempt) => {
-          const profile =
-            profileMap[attempt.user_id]
-
           return {
             ...attempt,
             full_name:
-              profile?.full_name ||
+              attempt.full_name ||
               "Student",
             level:
-              profile?.level || "—",
+              attempt.level || "—",
           }
         })
 

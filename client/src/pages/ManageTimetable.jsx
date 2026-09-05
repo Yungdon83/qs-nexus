@@ -71,6 +71,16 @@ function ManageTimetable() {
   async function addTimetable(e) {
     e.preventDefault()
 
+    if (!form.start_time || !form.end_time) {
+      alert("Please provide both start and end times")
+      return
+    }
+
+    if (form.start_time >= form.end_time) {
+      alert("End time must be later than start time")
+      return
+    }
+
     setSaving(true)
 
     const { error } = await supabase

@@ -9,57 +9,14 @@ const corsHeaders = {
 
 type QuizQuestion = {
   question?: string
-    const authHeader = req.headers.get("Authorization")
-    const token = authHeader?.replace(/^Bearer\s+/i, "")
-
-    if (!token) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      )
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Supabase environment variables are missing.")
-    }
-
-    const supabaseClient = createClient(
-      supabaseUrl,
-      supabaseAnonKey
-    )
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseClient.auth.getUser(token)
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      )
-    }
-
+  
   options?: string[]
   answer?: string
   explanation?: string
 }
 
 type QuizAttempt = {
+  id?: string
   course_code?: string
   course_title?: string
   question_count?: number
@@ -71,6 +28,16 @@ type QuizAttempt = {
 
 type AnalysisInput = {
   attempts?: QuizAttempt[]
+}
+
+function jsonResponse(body: Record<string, unknown>, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+    },
+  })
 }
 
 type GeminiResponse = {
@@ -361,7 +328,56 @@ Deno.serve(async (req) => {
     })
   }
 
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405)
+  }
+
   try {
+    const authHeader = req.headers.get("Authorization")
+    const token = authHeader?.replace(/^Bearer\s+/i, "")
+
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Supabase environment variables are missing.")
+    }
+
+    const supabaseClient = createClient(
+      supabaseUrl,
+      supabaseAnonKey
+    )
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser(token)
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    }
+
     const apiKey =
       Deno.env.get(
         "GEMINI_API_KEY"
@@ -387,12 +403,16 @@ Deno.serve(async (req) => {
     const body =
       (await req.json()) as AnalysisInput
 
-    const attempts =
+    const submittedAttempts =
       Array.isArray(body.attempts)
         ? body.attempts
         : []
 
-    if (attempts.length === 0) {
+    const attemptIds = submittedAttempts
+      .map((attempt) => attempt.id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0)
+
+    if (attemptIds.length === 0) {
       return new Response(
         JSON.stringify({
           error:
@@ -407,6 +427,16 @@ Deno.serve(async (req) => {
           },
         }
       )
+    }
+
+    const { data: attempts, error: attemptsError } = await supabaseClient
+      .from("quiz_attempts")
+      .select("*")
+      .in("id", attemptIds)
+      .eq("user_id", user.id)
+
+    if (attemptsError || !attempts || attempts.length === 0) {
+      return jsonResponse({ error: "No accessible quiz attempts were found." }, 404)
     }
 
     const analysisData =
@@ -556,9 +586,6 @@ Return a concise but useful academic performance analysis.
             response.status === 503
               ? "Gemini is temporarily unavailable. Please try the analysis again in a moment."
               : "Gemini performance analysis failed",
-
-          details:
-            responseText,
         }),
         {
           status: response.status,
@@ -619,8 +646,6 @@ Return a concise but useful academic performance analysis.
         JSON.stringify({
           error:
             "Gemini returned no analysis",
-          details:
-            geminiData,
         }),
         {
           status: 500,
@@ -650,8 +675,6 @@ Return a concise but useful academic performance analysis.
         JSON.stringify({
           error:
             "Gemini returned invalid analysis JSON",
-          details:
-            generatedText,
         }),
         {
           status: 500,
@@ -691,11 +714,6 @@ Return a concise but useful academic performance analysis.
       JSON.stringify({
         error:
           "Unable to analyze performance",
-
-        details:
-          error instanceof Error
-            ? error.message
-            : String(error),
       }),
       {
         status: 500,

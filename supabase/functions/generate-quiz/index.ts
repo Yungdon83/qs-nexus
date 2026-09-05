@@ -25,6 +25,13 @@ Deno.serve(async (req) => {
     })
   }
 
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    })
+  }
+
   try {
     const authHeader = req.headers.get("Authorization")
     const token = authHeader?.replace(/^Bearer\s+/i, "")
@@ -233,7 +240,6 @@ STRICT REQUIREMENTS:
       return new Response(
         JSON.stringify({
           error: "Gemini request failed",
-          details: responseText,
         }),
         {
           status: response.status,
@@ -253,7 +259,6 @@ STRICT REQUIREMENTS:
       return new Response(
         JSON.stringify({
           error: "Invalid Gemini API response",
-          details: responseText,
         }),
         {
           status: 500,
@@ -273,7 +278,6 @@ STRICT REQUIREMENTS:
       return new Response(
         JSON.stringify({
           error: "Gemini returned an invalid response.",
-          details: geminiData,
         }),
         {
           status: 500,
@@ -294,7 +298,6 @@ STRICT REQUIREMENTS:
       return new Response(
         JSON.stringify({
           error: "Gemini returned no quiz.",
-          details: geminiData,
         }),
         {
           status: 500,
@@ -340,7 +343,6 @@ STRICT REQUIREMENTS:
       return new Response(
         JSON.stringify({
           error: "Gemini returned no quiz text.",
-          details: geminiData,
         }),
         {
           status: 500,
@@ -368,7 +370,6 @@ STRICT REQUIREMENTS:
         JSON.stringify({
           error:
             "Gemini returned invalid quiz JSON",
-          details: generatedText,
         }),
         {
           status: 500,
@@ -468,11 +469,6 @@ STRICT REQUIREMENTS:
         JSON.stringify({
           error:
             "Gemini generated invalid quiz questions.",
-          details: {
-            expected: questionCount,
-            valid:
-              validQuestions.length,
-          },
         }),
         {
           status: 500,
@@ -505,10 +501,6 @@ STRICT REQUIREMENTS:
     return new Response(
       JSON.stringify({
         error: "Unable to generate quiz",
-        details:
-          error instanceof Error
-            ? error.message
-            : String(error),
       }),
       {
         status: 500,

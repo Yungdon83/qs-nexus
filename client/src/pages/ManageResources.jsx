@@ -1,11 +1,24 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
+import {
+  getResourceStoragePath,
+  openResourceFile,
+} from "../utils/resourceStorage"
 
 function ManageResources() {
   const [resources, setResources] = useState([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState(null)
+
+  async function openResource(resource) {
+    try {
+      await openResourceFile(resource.file_url)
+    } catch (openError) {
+      console.error("RESOURCE FILE ERROR:", openError)
+      alert("This file is currently unavailable. Please try again later.")
+    }
+  }
 
   useEffect(() => {
     fetchResources()
@@ -50,31 +63,7 @@ function ManageResources() {
   }
 
   function getFileName(fileUrl) {
-    if (!fileUrl) {
-      return null
-    }
-
-    try {
-      const url = new URL(fileUrl)
-
-      const marker =
-        "/storage/v1/object/public/resources/"
-
-      const position = url.pathname.indexOf(marker)
-
-      if (position === -1) {
-        return null
-      }
-
-      return decodeURIComponent(
-        url.pathname.substring(
-          position + marker.length
-        )
-      )
-    } catch (error) {
-      console.log(error)
-      return null
-    }
+    return getResourceStoragePath(fileUrl)
   }
 
   async function deleteResource(resource) {
@@ -200,14 +189,13 @@ function ManageResources() {
 
                 <div className="flex gap-3 mt-5">
 
-                  <a
-                    href={resource.file_url}
-                    target="_blank"
-                    rel="noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => openResource(resource)}
                     className="bg-blue-900 text-white px-4 py-2 rounded-lg"
                   >
                     Open File
-                  </a>
+                  </button>
 
                   <button
                     onClick={() =>

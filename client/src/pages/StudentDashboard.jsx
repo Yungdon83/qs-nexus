@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import LogoutButton from "../components/LogoutButton"
+import { openResourceFile } from "../utils/resourceStorage"
 
 function StudentDashboard() {
   const navigate = useNavigate()
@@ -18,6 +19,15 @@ function StudentDashboard() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState("")
+
+  async function handleOpenResource(fileUrl) {
+    try {
+      await openResourceFile(fileUrl)
+    } catch (openError) {
+      console.error("RESOURCE FILE ERROR:", openError)
+      window.alert("This file is currently unavailable. Please try again later.")
+    }
+  }
 
   useEffect(() => {
     loadDashboard()
@@ -145,7 +155,10 @@ function StudentDashboard() {
       }
 
       setCourses(
-        coursesResult.data || []
+        (coursesResult.data || []).map((course) => ({
+          ...course,
+          course_title: course.course_title ?? "",
+        }))
       )
 
       // ==========================================
@@ -599,7 +612,7 @@ function StudentDashboard() {
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-slate-950 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen qs-page bg-gray-100 dark:bg-slate-950 text-gray-800 dark:text-gray-100 transition-colors duration-300">
 
       {/* HEADER */}
 
@@ -660,7 +673,7 @@ function StudentDashboard() {
             BASIC STATISTICS
         ====================================== */}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 qs-stagger">
 
           <Card
             title="Department"
@@ -1251,16 +1264,13 @@ function StudentDashboard() {
                     )}
 
                     {resource.file_url && (
-                      <a
-                        href={
-                          resource.file_url
-                        }
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => handleOpenResource(resource.file_url)}
                         className="inline-block mt-4 text-blue-700 dark:text-blue-400 font-semibold hover:underline"
                       >
                         Open Resource →
-                      </a>
+                      </button>
                     )}
 
                   </div>

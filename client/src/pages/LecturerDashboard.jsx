@@ -237,7 +237,7 @@ function LecturerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-slate-950 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen qs-page bg-gray-100 dark:bg-slate-950 text-gray-800 dark:text-gray-100 transition-colors duration-300">
 
       {/* ==========================================
           HERO HEADER
@@ -398,7 +398,7 @@ function LecturerDashboard() {
 
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 qs-stagger">
 
             <StatCard
               icon="📘"

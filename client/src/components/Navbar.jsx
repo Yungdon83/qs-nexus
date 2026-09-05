@@ -1,23 +1,35 @@
-import { Link } from "react-router-dom"
+import { useState } from "react"
+import { Link, useLocation } from "react-router-dom"
 import NotificationBell from "./NotificationBell"
 import { useTheme } from "../contexts/ThemeContext"
 
 function Navbar() {
   const { darkMode, toggleTheme } = useTheme()
+  const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const links = [
+    ["/", "Home"],
+    ["/about", "About"],
+    ["/courses", "Courses"],
+    ["/library", "Library"],
+    ["/resources", "Resources"],
+    ["/timetable", "Timetable"],
+  ]
+
+  function isActive(path) {
+    return path === "/" ? location.pathname === path : location.pathname.startsWith(path)
+  }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white dark:bg-slate-900 shadow-md transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 shadow-sm backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/90 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
 
         <Link
           to="/"
           className="flex items-center gap-3"
         >
-          <div className="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center">
-            <span className="text-yellow-400 font-bold text-xl">
-              QS
-            </span>
-          </div>
+          <img src="/qs-nexus-logo.svg" alt="QS Nexus" className="w-11 h-11 rounded-2xl shadow-lg shadow-blue-900/20" />
 
           <div>
             <h1 className="font-bold text-xl text-blue-900 dark:text-blue-400">
@@ -30,46 +42,19 @@ function Navbar() {
           </div>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-
-          <Link
-            to="/"
-            className="text-gray-700 dark:text-gray-200 hover:text-blue-900 dark:hover:text-blue-400 font-medium"
-          >
-            Home
-          </Link>
-
-          <Link
-            to="/about"
-            className="text-gray-700 dark:text-gray-200 hover:text-blue-900 dark:hover:text-blue-400 font-medium"
-          >
-            About
-          </Link>
-
-          <Link
-            to="/courses"
-            className="text-gray-700 dark:text-gray-200 hover:text-blue-900 dark:hover:text-blue-400 font-medium"
-          >
-            Courses
-          </Link>
-
-          <Link
-            to="/resources"
-            className="text-gray-700 dark:text-gray-200 hover:text-blue-900 dark:hover:text-blue-400 font-medium"
-          >
-            Resources
-          </Link>
-
-          <Link
-            to="/timetable"
-            className="text-gray-700 dark:text-gray-200 hover:text-blue-900 dark:hover:text-blue-400 font-medium"
-          >
-            Timetable
-          </Link>
-
+        <div className="hidden md:flex items-center gap-1 rounded-full bg-slate-100/80 p-1 dark:bg-slate-800/80">
+          {links.map(([path, label]) => (
+            <Link
+              key={path}
+              to={path}
+              className={`rounded-full px-3 py-2 text-sm font-semibold transition ${isActive(path) ? "bg-white text-blue-900 shadow-sm dark:bg-slate-700 dark:text-yellow-300" : "text-gray-600 hover:text-blue-900 dark:text-gray-300 dark:hover:text-yellow-300"}`}
+            >
+              {label}
+            </Link>
+          ))}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
 
           <button
             onClick={toggleTheme}
@@ -83,14 +68,40 @@ function Navbar() {
 
           <Link
             to="/login"
-            className="bg-blue-900 text-white px-5 py-2 rounded-xl hover:bg-blue-800"
+            className="hidden sm:inline-flex qs-button bg-blue-900 text-white px-5 py-2 hover:bg-blue-800"
           >
             Login
           </Link>
 
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="md:hidden w-10 h-10 rounded-xl bg-slate-100 text-blue-900 dark:bg-slate-800 dark:text-white"
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+          >
+            {menuOpen ? "×" : "☰"}
+          </button>
+
         </div>
 
       </div>
+
+      {menuOpen && (
+        <div className="md:hidden border-t border-slate-200/70 bg-white px-4 py-3 dark:border-slate-700/70 dark:bg-slate-900 qs-stagger">
+          {links.map(([path, label]) => (
+            <Link
+              key={path}
+              to={path}
+              onClick={() => setMenuOpen(false)}
+              className={`block rounded-xl px-4 py-3 font-semibold ${isActive(path) ? "bg-blue-50 text-blue-900 dark:bg-slate-800 dark:text-yellow-300" : "text-gray-700 dark:text-gray-200"}`}
+            >
+              {label}
+            </Link>
+          ))}
+          <Link to="/login" onClick={() => setMenuOpen(false)} className="mt-2 block rounded-xl bg-blue-900 px-4 py-3 text-center font-semibold text-white">Login</Link>
+        </div>
+      )}
     </nav>
   )
 }

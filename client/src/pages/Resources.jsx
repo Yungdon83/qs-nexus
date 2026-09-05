@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
+import { openResourceFile } from "../utils/resourceStorage"
 
 function Resources() {
   const [resources, setResources] = useState([])
@@ -377,6 +378,15 @@ function ResourceCard({
   const assignment =
     isAssignment(resource)
 
+  async function handleOpenResource() {
+    try {
+      await openResourceFile(resource.file_url)
+    } catch (error) {
+      console.error("RESOURCE FILE ERROR:", error)
+      window.alert("This file is currently unavailable. Please try again later.")
+    }
+  }
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl shadow hover:shadow-lg transition p-6">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
@@ -435,10 +445,9 @@ function ResourceCard({
 
         <div className="lg:w-48">
           {resource.file_url ? (
-            <a
-              href={resource.file_url}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={handleOpenResource}
               className={`block text-center px-5 py-3 rounded-xl text-white font-bold transition ${
                 assignment
                   ? "bg-orange-600 hover:bg-orange-700"
@@ -448,7 +457,7 @@ function ResourceCard({
               {assignment
                 ? "📝 Open Assignment"
                 : "📖 Open Resource"}
-            </a>
+            </button>
           ) : (
             <div className="text-center px-5 py-3 rounded-xl bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400 font-semibold">
               No File Available

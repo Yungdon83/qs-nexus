@@ -15,6 +15,7 @@ function Login() {
 
 
   const [message, setMessage] = useState("")
+  const [verificationEmail, setVerificationEmail] = useState("")
 
 
 
@@ -49,11 +50,19 @@ function Login() {
 
 
     if (error) {
-
-      setMessage(error.message)
+      const isUnverified = error.code === "email_not_confirmed" || error.message?.toLowerCase().includes("confirm")
+      setVerificationEmail(isUnverified ? formData.email : "")
+      setMessage(isUnverified ? "Please verify your email before logging in." : error.message)
 
       return
 
+
+    if (!data.user.email_confirmed_at && !data.user.confirmed_at) {
+      await supabase.auth.signOut()
+      setVerificationEmail(formData.email)
+      setMessage("Please verify your email before logging in.")
+      return
+    }
     }
 
 
@@ -118,10 +127,12 @@ function Login() {
 
   return (
 
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+    <div className="min-h-screen qs-page bg-gray-100 dark:bg-slate-950 flex items-center justify-center p-6">
 
 
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+      <div className="qs-card p-8 w-full max-w-md">
+
+        <img src="/qs-nexus-logo.svg" alt="QS Nexus" className="w-16 h-16 mx-auto rounded-2xl mb-4" />
 
 
 
@@ -162,7 +173,7 @@ function Login() {
 
             onChange={handleChange}
 
-            className="w-full border rounded-lg p-3"
+            className="qs-input w-full border rounded-lg p-3 bg-transparent"
 
             required
 
@@ -184,7 +195,7 @@ function Login() {
 
             onChange={handleChange}
 
-            className="w-full border rounded-lg p-3"
+            className="qs-input w-full border rounded-lg p-3 bg-transparent"
 
             required
 
@@ -198,7 +209,7 @@ function Login() {
 
             type="submit"
 
-            className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800"
+            className="qs-button w-full bg-blue-900 text-white py-3 font-semibold hover:bg-blue-800"
 
           >
 
@@ -241,6 +252,16 @@ function Login() {
           {message}
 
         </p>
+
+        {verificationEmail && (
+          <Link
+            to="/verify-email"
+            state={{ email: verificationEmail }}
+            className="block text-center mt-3 text-blue-700 hover:underline"
+          >
+            Verify your email or resend the verification link
+          </Link>
+        )}
 
 
 
