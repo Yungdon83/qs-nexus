@@ -157,7 +157,11 @@ function Library() {
         </div>
 
         <section className="qs-card p-5 mb-8">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <details className="qs-filter-details" open>
+            <summary className="md:hidden cursor-pointer list-none rounded-xl border border-gray-200 dark:border-slate-700 px-4 py-3 font-semibold">
+              Search and filter materials
+            </summary>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-4 md:mt-0">
             <input
               value={filters.search}
               onChange={(event) => updateFilter("search", event.target.value)}
@@ -177,8 +181,8 @@ function Library() {
               <option value="all">All Courses</option>
               {courses.map((course) => <option key={course.id} value={course.course_code}>{course.course_code}</option>)}
             </select>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
             <span className="text-sm font-semibold mr-2 self-center">Semester:</span>
             {["all", "First Semester", "Second Semester"].map((semester) => (
               <button key={semester} type="button" onClick={() => updateFilter("semester", semester)} className={`px-3 py-2 rounded-lg text-sm ${filters.semester === semester ? "bg-blue-900 text-white" : "bg-gray-100 dark:bg-slate-800"}`}>
@@ -186,7 +190,8 @@ function Library() {
               </button>
             ))}
             <button type="button" onClick={clearFilters} className="px-3 py-2 rounded-lg text-sm border border-gray-300 dark:border-slate-700">Clear filters</button>
-          </div>
+            </div>
+          </details>
         </section>
 
         {loading && <p>Loading library materials...</p>}

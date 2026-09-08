@@ -672,7 +672,7 @@ function CourseQuiz() {
     return (
       <Page>
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-8 sm:p-10">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-4 sm:p-8 md:p-10">
             <div className="text-center">
               <div className="text-6xl mb-5">
                 {percentage >= 70

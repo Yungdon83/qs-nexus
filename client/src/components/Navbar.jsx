@@ -2,11 +2,35 @@ import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import NotificationBell from "./NotificationBell"
 import { useTheme } from "../contexts/ThemeContext"
+import { useAuth } from "../contexts/AuthContext"
 
 function Navbar() {
   const { darkMode, toggleTheme } = useTheme()
+  const { user, profile, logout } = useAuth()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const role = profile?.role
+  const mobileLinks = role === "student"
+    ? [
+        ["/student-dashboard", "Home", "⌂"],
+        ["/courses", "Courses", "▦"],
+        ["/library", "Library", "▤"],
+        ["/student-assignments", "Tasks", "✓"],
+      ]
+    : role === "lecturer"
+      ? [
+          ["/lecturer-dashboard", "Home", "⌂"],
+          ["/manage-assignments", "Tasks", "✓"],
+          ["/library", "Library", "▤"],
+          ["/grade-submissions", "Grade", "□"],
+        ]
+      : [
+          ["/admin-dashboard", "Home", "⌂"],
+          ["/manage-students", "Students", "♙"],
+          ["/manage-courses", "Courses", "▦"],
+          ["/library", "Library", "▤"],
+        ]
 
   const links = [
     ["/", "Home"],
@@ -100,7 +124,25 @@ function Navbar() {
             </Link>
           ))}
           <Link to="/login" onClick={() => setMenuOpen(false)} className="mt-2 block rounded-xl bg-blue-900 px-4 py-3 text-center font-semibold text-white">Login</Link>
+          {user && (
+            <button type="button" onClick={() => { setMenuOpen(false); void logout() }} className="mt-2 block w-full rounded-xl border border-red-200 px-4 py-3 text-center font-semibold text-red-700 dark:border-red-900 dark:text-red-300">Log out</button>
+          )}
         </div>
+      )}
+
+      {user && role && (
+        <nav className="qs-mobile-nav md:hidden" aria-label="Mobile navigation">
+          {mobileLinks.map(([path, label, icon]) => (
+            <Link key={path} to={path} className={isActive(path) ? "qs-mobile-nav-link active" : "qs-mobile-nav-link"} aria-current={isActive(path) ? "page" : undefined}>
+              <span className="qs-mobile-nav-icon" aria-hidden="true">{icon}</span>
+              <span>{label}</span>
+            </Link>
+          ))}
+          <button type="button" className="qs-mobile-nav-link" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen}>
+            <span className="qs-mobile-nav-icon" aria-hidden="true">•••</span>
+            <span>More</span>
+          </button>
+        </nav>
       )}
     </nav>
   )

@@ -1,4 +1,7 @@
+import { useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { App as CapacitorApp } from "@capacitor/app"
+import { Capacitor } from "@capacitor/core"
 import Timetable from "./pages/Timetable"
 import ProtectedRoute from "./components/ProtectedRoute"
 import Navbar from "./components/Navbar"
@@ -69,6 +72,26 @@ import ManageAssignments from "./pages/ManageAssignments"
 import GradeSubmissions from "./pages/GradeSubmissions"
 
 function App() {
+  useEffect(() => {
+    let backButtonListener
+
+    if (!Capacitor.isNativePlatform()) return undefined
+
+    void CapacitorApp.addListener("backButton", ({ canGoBack }) => {
+      if (canGoBack && window.history.length > 1) {
+        window.history.back()
+      } else {
+        void CapacitorApp.exitApp()
+      }
+    }).then((listener) => {
+      backButtonListener = listener
+    })
+
+    return () => {
+      void backButtonListener?.remove()
+    }
+  }, [])
+
   return (
     <BrowserRouter>
       <Navbar />

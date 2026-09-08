@@ -1,0 +1,26 @@
+{
+  "name": "QS Nexus Academic Portal",
+  "short_name": "QS Nexus",
+  "description": "QS Nexus academic portal for Quantity Surveying students and staff.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f8fc",
+  "theme_color": "#0b2a5b",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/qs-nexus-logo.svg",
+      "sizes": "128x128",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "128x128",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

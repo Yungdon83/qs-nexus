@@ -37,10 +37,6 @@ function StudyAssistant() {
     },
   ]
 
-  useEffect(() => {
-    loadCourses()
-  }, [])
-
   async function loadCourses() {
     try {
       const {
@@ -90,6 +86,10 @@ function StudyAssistant() {
       setLoadingCourses(false)
     }
   }
+
+  useEffect(() => {
+    void Promise.resolve().then(loadCourses)
+  }, [])
 
   const selectedCourseData = courses.find(
     (course) =>
@@ -200,10 +200,10 @@ function StudyAssistant() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 px-4 md:px-6 py-8">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 px-3 sm:px-4 md:px-6 py-5 md:py-8">
       <div className="max-w-5xl mx-auto">
 
-        <div className="bg-blue-900 text-white rounded-2xl p-6 md:p-8 shadow-lg">
+        <div className="bg-blue-900 text-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg">
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 

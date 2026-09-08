@@ -37,7 +37,7 @@ function QuizLeaderboard() {
           attemptsError
         )
 
-        setError(attemptsError.message)
+        setError("Unable to load the leaderboard right now. Please try again later.")
         setLoading(false)
         return
       }

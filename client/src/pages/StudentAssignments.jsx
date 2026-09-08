@@ -8,10 +8,6 @@ function StudentAssignments() {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
 
-  useEffect(() => {
-    loadAssignments()
-  }, [])
-
   async function loadAssignments() {
     setLoading(true)
 
@@ -133,6 +129,10 @@ function StudentAssignments() {
     }
   }
 
+  useEffect(() => {
+    void Promise.resolve().then(loadAssignments)
+  }, [])
+
   // ==========================================
   // CHECK SUBMISSION
   // ==========================================
@@ -237,7 +237,7 @@ function StudentAssignments() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-slate-950 text-gray-800 dark:text-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 dark:bg-slate-950 text-gray-800 dark:text-gray-100 p-4 sm:p-6 md:p-8">
 
       <div className="max-w-6xl mx-auto">
 
