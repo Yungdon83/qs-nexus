@@ -27,3 +27,6 @@ dist-ssr
 android/.gradle/
 android/**/build/
 android/local.properties
+
+# Environment variables
+.env
