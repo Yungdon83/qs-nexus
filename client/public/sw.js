@@ -1,4 +1,4 @@
-const CACHE_NAME = "qs-nexus-shell-v1"
+const CACHE_NAME = "qs-nexus-shell-v2"
 const SHELL_ASSETS = [
   "/",
   "/index.html",
@@ -13,6 +13,7 @@ self.addEventListener("install", (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(SHELL_ASSETS))
       .then(() => self.skipWaiting())
+      .catch(() => self.skipWaiting())
   )
 })
 
@@ -36,34 +37,62 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  if (url.pathname.startsWith("/rest/") || url.pathname.startsWith("/auth/") || url.pathname.startsWith("/storage/")) {
-    return
-  }
-
   if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", copy))
-          return response
-        })
-        .catch(() => caches.match("/index.html").then((response) => response || caches.match("/offline.html")))
-    )
+    event.respondWith(handleNavigation(request))
     return
   }
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached
+  if (!isCacheableAsset(request, url)) return
 
-      return fetch(request).then((response) => {
-        if (response.ok && response.type === "basic") {
-          const copy = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
-        }
-        return response
-      })
-    })
-  )
+  event.respondWith(handleAsset(request))
 })
+
+async function handleNavigation(request) {
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      await cacheResponse("/index.html", response.clone())
+    }
+    return response
+  } catch {
+    try {
+      return (await caches.match("/index.html")) || (await caches.match("/offline.html")) || offlineResponse()
+    } catch {
+      return offlineResponse()
+    }
+  }
+}
+
+async function handleAsset(request) {
+  try {
+    const cached = await caches.match(request)
+    if (cached) return cached
+
+    const response = await fetch(request)
+    if (response.ok && response.type === "basic") {
+      await cacheResponse(request, response.clone())
+    }
+    return response
+  } catch {
+    return new Response(null, { status: 503, statusText: "Offline" })
+  }
+}
+
+function isCacheableAsset(request, url) {
+  return request.destination !== "" || url.pathname === "/manifest.webmanifest"
+}
+
+async function cacheResponse(request, response) {
+  try {
+    const cache = await caches.open(CACHE_NAME)
+    await cache.put(request, response)
+  } catch {}
+}
+
+function offlineResponse() {
+  return new Response("Offline", {
+    status: 503,
+    statusText: "Offline",
+    headers: { "Content-Type": "text/plain" },
+  })
+}
