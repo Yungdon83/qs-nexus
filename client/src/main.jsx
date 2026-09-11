@@ -5,14 +5,6 @@ import { AuthProvider } from "./contexts/AuthContext.jsx"
 import { ThemeProvider } from "./contexts/ThemeContext.jsx"
 import "./index.css"
 
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch((error) => {
-      console.error("QS Nexus service worker registration failed:", error)
-    })
-  })
-}
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>

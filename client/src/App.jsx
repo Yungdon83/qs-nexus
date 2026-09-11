@@ -93,7 +93,7 @@ function App() {
   }, [])
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Navbar />
 
       <Routes>
@@ -225,6 +225,15 @@ function App() {
 
         <Route
           path="/quiz-leaderboard"
+          element={
+            <ProtectedRoute role="student">
+              <QuizLeaderboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/leaderboard"
           element={
             <ProtectedRoute role="student">
               <QuizLeaderboard />
@@ -393,6 +402,15 @@ function App() {
 
         <Route
           path="/student-announcements"
+          element={
+            <ProtectedRoute role="student">
+              <StudentAnnouncements />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/announcements"
           element={
             <ProtectedRoute role="student">
               <StudentAnnouncements />

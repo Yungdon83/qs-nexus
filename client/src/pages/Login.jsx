@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom"
 
 function Login() {
   const navigate = useNavigate()
+  const logoUrl = `${import.meta.env.BASE_URL}qs-nexus-logo.svg`
 
   const [formData, setFormData] = useState({
     email: "",
@@ -87,7 +88,7 @@ function Login() {
       type: "signup",
       email: verificationEmail,
       options: {
-        emailRedirectTo: `${window.location.origin}/verify-email`
+        emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}verify-email`
       }
     })
 
@@ -103,7 +104,7 @@ function Login() {
       <div className="qs-card p-8 w-full max-w-md">
 
         <img
-          src="/qs-nexus-logo.svg"
+          src={logoUrl}
           alt="QS Nexus"
           className="w-16 h-16 mx-auto rounded-2xl mb-4"
         />

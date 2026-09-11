@@ -64,7 +64,7 @@ function VerifyEmail() {
       type: "signup",
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/verify-email`,
+        emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}verify-email`,
       },
     })
 

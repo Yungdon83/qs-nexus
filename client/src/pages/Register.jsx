@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase"
 
 function Register() {
   const navigate = useNavigate()
+  const logoUrl = `${import.meta.env.BASE_URL}qs-nexus-logo.svg`
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -27,7 +28,7 @@ function Register() {
       email: form.email.trim(),
       password: form.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/verify-email`,
+        emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}verify-email`,
         data: {
           full_name: form.full_name.trim(),
           department: form.department,
@@ -55,7 +56,7 @@ function Register() {
   return (
     <main className="min-h-screen qs-page bg-gray-100 dark:bg-slate-950 flex items-center justify-center p-6 md:p-8">
       <div className="qs-card p-8 w-full max-w-md">
-        <img src="/qs-nexus-logo.svg" alt="QS Nexus" className="w-16 h-16 mx-auto rounded-2xl mb-4" />
+        <img src={logoUrl} alt="QS Nexus" className="w-16 h-16 mx-auto rounded-2xl mb-4" />
         <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-300 mb-2">Create Account</h1>
         <p className="text-gray-600 dark:text-gray-400 mb-6">Register as a QS Nexus student.</p>
 

@@ -9,6 +9,7 @@ function Navbar() {
   const { user, profile, logout } = useAuth()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const logoUrl = `${import.meta.env.BASE_URL}qs-nexus-logo.svg`
 
   const role = profile?.role
   const mobileLinks = role === "student"
@@ -53,7 +54,7 @@ function Navbar() {
           to="/"
           className="flex items-center gap-3"
         >
-          <img src="/qs-nexus-logo.svg" alt="QS Nexus" className="w-11 h-11 rounded-2xl shadow-lg shadow-blue-900/20" />
+          <img src={logoUrl} alt="QS Nexus" className="w-11 h-11 rounded-2xl shadow-lg shadow-blue-900/20" />
 
           <div>
             <h1 className="font-bold text-xl text-blue-900 dark:text-blue-400">
