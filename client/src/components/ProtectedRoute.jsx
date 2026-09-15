@@ -5,8 +5,6 @@ import { supabase } from "../lib/supabase"
 function ProtectedRoute({ children, role }) {
   const [loading, setLoading] = useState(true)
   const [allowed, setAllowed] = useState(false)
-  const [verificationRequired, setVerificationRequired] = useState(false)
-  const [verificationEmail, setVerificationEmail] = useState("")
 
   useEffect(() => {
     let mounted = true
@@ -15,8 +13,6 @@ function ProtectedRoute({ children, role }) {
       try {
         setLoading(true)
         setAllowed(false)
-        setVerificationRequired(false)
-        setVerificationEmail("")
 
         const {
           data: { session },
@@ -29,14 +25,6 @@ function ProtectedRoute({ children, role }) {
         }
 
         if (!session?.user) {
-          return
-        }
-
-        if (!session.user.email_confirmed_at && !session.user.confirmed_at) {
-          if (mounted) {
-            setVerificationRequired(true)
-            setVerificationEmail(session.user.email || "")
-          }
           return
         }
 
@@ -74,8 +62,8 @@ function ProtectedRoute({ children, role }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950">
-        <p className="font-bold text-blue-900 dark:text-blue-400">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 px-4">
+        <p className="font-bold text-blue-900 dark:text-blue-400 text-sm sm:text-base">
           Checking access...
         </p>
       </div>
@@ -83,9 +71,6 @@ function ProtectedRoute({ children, role }) {
   }
 
   if (!allowed) {
-    if (verificationRequired) {
-      return <Navigate to="/verify-email" state={{ email: verificationEmail }} replace />
-    }
     return <Navigate to="/login" replace />
   }
 

@@ -48,20 +48,20 @@ function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 shadow-sm backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/90 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2">
 
         <Link
           to="/"
-          className="flex items-center gap-3"
+          className="flex items-center gap-2 sm:gap-3 min-w-0"
         >
-          <img src={logoUrl} alt="QS Nexus" className="w-11 h-11 rounded-2xl shadow-lg shadow-blue-900/20" />
+          <img src={logoUrl} alt="QS Nexus" className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl shadow-lg shadow-blue-900/20" />
 
-          <div>
-            <h1 className="font-bold text-xl text-blue-900 dark:text-blue-400">
+          <div className="min-w-0">
+            <h1 className="font-bold text-base sm:text-xl text-blue-900 dark:text-blue-400 leading-tight">
               QS Nexus
             </h1>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="hidden sm:block text-[11px] text-gray-500 dark:text-gray-400">
               Quantity Surveying Portal
             </p>
           </div>

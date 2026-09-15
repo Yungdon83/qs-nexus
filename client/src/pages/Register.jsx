@@ -28,7 +28,6 @@ function Register() {
       email: form.email.trim(),
       password: form.password,
       options: {
-        emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}verify-email`,
         data: {
           full_name: form.full_name.trim(),
           department: form.department,
@@ -50,30 +49,30 @@ function Register() {
       return
     }
 
-    navigate("/verify-email", { state: { email: form.email.trim() } })
+    navigate("/login", { state: { email: form.email.trim() } })
   }
 
   return (
-    <main className="min-h-screen qs-page bg-gray-100 dark:bg-slate-950 flex items-center justify-center p-6 md:p-8">
-      <div className="qs-card p-8 w-full max-w-md">
-        <img src={logoUrl} alt="QS Nexus" className="w-16 h-16 mx-auto rounded-2xl mb-4" />
-        <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-300 mb-2">Create Account</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">Register as a QS Nexus student.</p>
+    <main className="min-h-screen qs-page bg-gray-100 dark:bg-slate-950 flex items-center justify-center px-4 py-6 sm:p-8">
+      <div className="qs-card p-5 sm:p-8 w-full max-w-md">
+        <img src={logoUrl} alt="QS Nexus" className="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl mb-4" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-300 mb-2">Create Account</h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-5 sm:mb-6">Register as a QS Nexus student.</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <p role="alert" className="text-red-700 dark:text-red-300">{error}</p>}
-          <input type="text" name="full_name" placeholder="Full Name" value={form.full_name} onChange={handleChange} className="qs-input w-full border p-3 rounded-lg bg-transparent" required />
-          <input type="email" name="email" placeholder="Email" value={form.email} onChange={handleChange} className="qs-input w-full border p-3 rounded-lg bg-transparent" required />
-          <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} minLength={6} className="qs-input w-full border p-3 rounded-lg bg-transparent" required />
-          <select name="level" value={form.level} onChange={handleChange} className="qs-input w-full border p-3 rounded-lg bg-transparent" aria-label="Level">
+          {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}
+          <input type="text" name="full_name" placeholder="Full Name" value={form.full_name} onChange={handleChange} className="qs-input w-full border p-3 rounded-lg bg-transparent text-sm sm:text-base" required />
+          <input type="email" name="email" placeholder="Email" value={form.email} onChange={handleChange} className="qs-input w-full border p-3 rounded-lg bg-transparent text-sm sm:text-base" required />
+          <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} minLength={6} className="qs-input w-full border p-3 rounded-lg bg-transparent text-sm sm:text-base" required />
+          <select name="level" value={form.level} onChange={handleChange} className="qs-input w-full border p-3 rounded-lg bg-transparent text-sm sm:text-base" aria-label="Level">
             {['100L', '200L', '300L', '400L', '500L'].map((level) => <option key={level}>{level}</option>)}
           </select>
-          <button type="submit" disabled={loading} className="qs-button w-full bg-blue-900 text-white py-3 disabled:opacity-60">
+          <button type="submit" disabled={loading} className="qs-button w-full bg-blue-900 text-white py-3 disabled:opacity-60 text-sm sm:text-base">
             {loading ? "Creating..." : "Register"}
           </button>
         </form>
 
-        <p className="text-center mt-5 text-gray-600 dark:text-gray-400">
+        <p className="text-center mt-5 text-sm text-gray-600 dark:text-gray-400">
           Already have an account? <Link to="/login" className="text-blue-900 dark:text-blue-300 font-bold hover:underline">Login</Link>
         </p>
       </div>

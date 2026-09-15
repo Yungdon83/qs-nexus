@@ -3,36 +3,35 @@ function Home() {
     <div className="min-h-screen qs-page">
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-blue-900 text-white min-h-[80vh] flex items-center">
+      <section className="relative overflow-hidden bg-blue-900 text-white min-h-[70vh] sm:min-h-[80vh] flex items-center">
 
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-6 md:gap-10 items-center py-8 sm:py-12 md:py-16">
 
-          <div className="relative z-10 py-16 md:py-20">
+          <div className="relative z-10 py-6 md:py-10">
 
-            <p className="text-yellow-400 font-semibold mb-4">
+            <p className="text-yellow-400 font-semibold mb-3 text-xs sm:text-sm uppercase tracking-[0.12em]">
               UNIVERSITY OF IBADAN
             </p>
 
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
               Department of
-              <span className="text-yellow-400">
+              <span className="text-yellow-400 block md:inline">
                 {" "}Quantity Surveying
               </span>
             </h1>
 
-            <p className="mt-6 text-lg text-blue-100">
+            <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-blue-100 max-w-xl">
               QS Nexus is a digital academic portal connecting students,
               lecturers, and the department in one platform.
             </p>
 
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
 
-            <div className="mt-8 flex gap-4">
-
-              <button className="qs-button bg-yellow-400 text-blue-900 px-6 py-3 font-semibold">
+              <button className="qs-button bg-yellow-400 text-blue-900 px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm sm:text-base">
                 Student Portal
               </button>
 
-              <button className="qs-button border border-white px-6 py-3 hover:bg-white hover:text-blue-900">
+              <button className="qs-button border border-white px-5 py-2.5 sm:px-6 sm:py-3 hover:bg-white hover:text-blue-900 text-sm sm:text-base">
                 Explore Courses
               </button>
 
@@ -40,10 +39,9 @@ function Home() {
 
           </div>
 
+          <div className="relative z-10 bg-white/10 backdrop-blur-lg rounded-3xl p-4 sm:p-6 md:p-8 border border-white/15 shadow-2xl">
 
-          <div className="relative z-10 bg-white/10 backdrop-blur-lg rounded-3xl p-6 md:p-10 border border-white/15 shadow-2xl">
-
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6">
 
               {[
                 ["500+", "Students"],

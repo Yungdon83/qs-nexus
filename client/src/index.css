@@ -13,6 +13,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 15px;
 }
 
 * {
@@ -29,6 +30,17 @@ body,
 
 body {
   overflow-x: hidden;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+p, li, span, div, input, select, button {
+  line-height: 1.5;
 }
 
 img,
@@ -97,13 +109,23 @@ table {
     padding-bottom: 78px;
   }
 
+  .qs-card {
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  }
+
   .qs-card:hover {
     transform: none;
-    box-shadow: var(--qs-shadow);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   }
 
   .qs-page {
     min-width: 0;
+  }
+
+  .qs-button {
+    min-height: 44px;
+    border-radius: 10px;
   }
 
   .overflow-x-auto {
@@ -113,6 +135,21 @@ table {
 
   .overflow-x-auto table {
     min-width: 640px;
+  }
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+
+  .qs-page {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .qs-card {
+    padding: 1rem !important;
   }
 }
 
@@ -161,6 +198,10 @@ select:focus-visible {
   transform: translateY(-4px);
   border-color: rgba(232, 184, 75, 0.5);
   box-shadow: 0 22px 55px rgba(16, 35, 63, 0.14);
+}
+
+.qs-page {
+  animation: qs-page-in 0.45s ease both;
 }
 
 .qs-button {
