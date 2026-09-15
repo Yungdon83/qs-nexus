@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">QS Nexus</string>
+    <string name="title_activity_main">QS Nexus</string>
+    <string name="package_name">com.qsnexus.app</string>
+    <string name="custom_url_scheme">com.qsnexus.app</string>
+</resources>
