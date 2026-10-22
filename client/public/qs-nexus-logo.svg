@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">QS Nexus</title>
+  <desc id="desc">Geometric blue and gold building mark with connected measurement nodes</desc>
+  <rect width="128" height="128" rx="28" fill="#0b2a5b"/>
+  <path d="M24 94h80M30 88V48l34-18 34 18v40" fill="none" stroke="#f3c74f" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <path d="M43 88V57h42v31M64 57v31M43 72h42" fill="none" stroke="#d8e7ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+  <path d="M30 48 64 30l34 18M30 48l-8 8M98 48l8 8" fill="none" stroke="#f3c74f" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+  <circle cx="30" cy="48" r="6" fill="#f3c74f"/>
+  <circle cx="64" cy="30" r="6" fill="#f3c74f"/>
+  <circle cx="98" cy="48" r="6" fill="#f3c74f"/>
+</svg>
