@@ -23,12 +23,8 @@ Frontend
 - Tailwind CSS
 - React Router
 
-Backend (Planned)
-- Node.js
-- Express.js
-
-Database (Planned)
-- Supabase
+Backend
+- Supabase (auth, database, storage, edge functions)
 
 Authentication
 - Supabase Auth
